@@ -1,0 +1,21 @@
+{
+  "name": "Blake UK Homes — Private Landlord Portfolio",
+  "short_name": "Blake UK Homes",
+  "description": "Compliance, rent tracking, tenant portal, and court-ready evidence for UK landlords.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "categories": ["productivity", "business"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Dashboard", "url": "/dashboard", "description": "Open portfolio overview" },
+    { "name": "Add property", "url": "/properties/new" },
+    { "name": "Section 13 notice", "url": "/notices" }
+  ]
+}

@@ -1,0 +1,116 @@
+import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
+import { createClient } from '@/lib/supabase/server'
+import { PageHeader } from '@/components/app-shell'
+import { Card, CardBody } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input, Label, Select, Textarea } from '@/components/ui/input'
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '@/lib/mtd'
+import type { Property } from '@/lib/types'
+import { format } from 'date-fns'
+
+export const dynamic = 'force-dynamic'
+
+export default async function NewMtdTransactionPage() {
+  const supabase = createClient()
+  const { data: properties = [] } = await supabase.from('properties').select('id, nickname').order('nickname')
+  const props = (properties ?? []) as Pick<Property, 'id' | 'nickname'>[]
+
+  async function logTransaction(formData: FormData) {
+    'use server'
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const kind = String(formData.get('kind')) as 'income' | 'expense'
+
+    const payload: any = {
+      property_id: String(formData.get('property_id')),
+      kind,
+      transaction_date: String(formData.get('transaction_date')),
+      amount: Number(formData.get('amount') ?? 0),
+      description: (formData.get('description') as string) || null,
+      supplier_or_payer: (formData.get('supplier_or_payer') as string) || null,
+      notes: (formData.get('notes') as string) || null,
+      created_by: user?.id ?? null,
+      income_category:  kind === 'income'  ? (formData.get('income_category')  as string) : null,
+      expense_category: kind === 'expense' ? (formData.get('expense_category') as string) : null,
+    }
+
+    const { error } = await supabase.from('mtd_transactions').insert(payload)
+    if (error) throw new Error(error.message)
+    revalidatePath('/mtd')
+    redirect('/mtd')
+  }
+
+  return (
+    <>
+      <PageHeader title="Log MTD transaction" subtitle="Tag every payment to its HMRC ITSA category." />
+      <div className="p-6">
+        <Card className="max-w-2xl">
+          <CardBody>
+            <form action={logTransaction} className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="property_id">Property</Label>
+                <Select id="property_id" name="property_id" required>
+                  {props.map((p) => <option key={p.id} value={p.id}>{p.nickname}</option>)}
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="transaction_date">Date</Label>
+                <Input id="transaction_date" name="transaction_date" type="date" required defaultValue={format(new Date(), 'yyyy-MM-dd')} />
+              </div>
+
+              <div className="sm:col-span-2">
+                <Label htmlFor="kind">Type</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="cursor-pointer rounded-lg border border-ink-200 bg-white p-3 text-sm has-[input:checked]:border-success-500 has-[input:checked]:bg-success-50">
+                    <input type="radio" name="kind" value="income" defaultChecked className="mr-2" /> Income
+                  </label>
+                  <label className="cursor-pointer rounded-lg border border-ink-200 bg-white p-3 text-sm has-[input:checked]:border-warning-500 has-[input:checked]:bg-warning-50">
+                    <input type="radio" name="kind" value="expense" className="mr-2" /> Expense
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="income_category">Income category</Label>
+                <Select id="income_category" name="income_category" defaultValue="period_amount">
+                  {INCOME_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                </Select>
+                <p className="mt-1 text-xs text-ink-500">Used when type = Income.</p>
+              </div>
+              <div>
+                <Label htmlFor="expense_category">Expense category</Label>
+                <Select id="expense_category" name="expense_category" defaultValue="repairs_and_maintenance">
+                  {EXPENSE_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                </Select>
+                <p className="mt-1 text-xs text-ink-500">Used when type = Expense.</p>
+              </div>
+
+              <div>
+                <Label htmlFor="amount">Amount (£)</Label>
+                <Input id="amount" name="amount" type="number" step="0.01" min={0} required />
+              </div>
+              <div>
+                <Label htmlFor="supplier_or_payer">Supplier or payer</Label>
+                <Input id="supplier_or_payer" name="supplier_or_payer" placeholder="e.g. British Gas, Tenant Patel" />
+              </div>
+
+              <div className="sm:col-span-2">
+                <Label htmlFor="description">Description</Label>
+                <Input id="description" name="description" placeholder="e.g. Monthly gas bill" />
+              </div>
+              <div className="sm:col-span-2">
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea id="notes" name="notes" rows={2} />
+              </div>
+
+              <div className="sm:col-span-2 flex justify-end gap-2">
+                <Button type="submit" size="lg">Log transaction</Button>
+              </div>
+            </form>
+          </CardBody>
+        </Card>
+      </div>
+    </>
+  )
+}
