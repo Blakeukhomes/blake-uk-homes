@@ -129,11 +129,16 @@ export default async function MessagesPage({
               <section className="flex flex-col">
                 {activeConv ? (
                   <>
-                    <div className="border-b hairline border-b-ink-100 px-6 py-4">
-                      <p className="text-sm font-bold text-ink-900">
-                        {activeConv.contact_id ? contactMap.get(activeConv.contact_id)?.full_name ?? 'Unknown' : 'Direct'}
-                      </p>
-                      <p className="text-xs text-ink-500">{activeConv.subject ?? activeConv.category}</p>
+                    <div className="flex items-center justify-between border-b hairline border-b-ink-100 px-6 py-4">
+                      <div>
+                        <p className="text-sm font-bold text-ink-900">
+                          {activeConv.contact_id ? contactMap.get(activeConv.contact_id)?.full_name ?? 'Unknown' : 'Direct'}
+                        </p>
+                        <p className="text-xs text-ink-500">{activeConv.subject ?? activeConv.category}</p>
+                      </div>
+                      <Link href={`/api/pdf/messages/${activeConv.id}`} target="_blank" className="text-xs font-semibold text-accent-700 underline">
+                        Export PDF
+                      </Link>
                     </div>
                     <div className="flex-1 space-y-3 overflow-y-auto bg-ink-50/40 px-6 py-4">
                       {messages.length === 0 ? (

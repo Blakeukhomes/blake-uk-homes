@@ -2,6 +2,29 @@
 
 export type UserRole = 'owner' | 'manager' | 'readonly' | 'tenant'
 export type ContactKind = 'tenant' | 'contractor' | 'supplier' | 'agent' | 'other'
+export type MortgageType = 'repayment' | 'interest_only' | 'part_and_part'
+export type MortgageRateKind = 'fixed' | 'variable' | 'tracker' | 'discount'
+
+export interface Mortgage {
+  id: string
+  property_id: string
+  lender: string
+  account_number: string | null
+  mortgage_type: MortgageType
+  rate_kind: MortgageRateKind
+  interest_rate: number | null
+  monthly_payment: number | null
+  monthly_interest: number | null
+  outstanding_balance: number | null
+  fix_end_date: string | null
+  start_date: string | null
+  product_end_date: string | null
+  statement_document_id: string | null
+  offer_document_id: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
 
 export interface Contact {
   id: string
@@ -20,7 +43,7 @@ export interface Contact {
   updated_at: string
 }
 export type PropertyStatus = 'tenanted' | 'vacant' | 'legal_proceedings'
-export type ComplianceType = 'gas_safety' | 'eicr' | 'epc' | 'buildings_insurance'
+export type ComplianceType = 'gas_safety' | 'eicr' | 'epc' | 'buildings_insurance' | 'legionella'
 export type RentStatus = 'paid' | 'late' | 'missing' | 'partial'
 export type MaintenanceKind = 'inspection' | 'task'
 export type FaultSeverity = 'emergency' | 'urgent' | 'standard' | 'minor'

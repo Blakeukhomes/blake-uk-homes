@@ -38,6 +38,7 @@ export default async function PropertyPage({ params }: { params: { id: string } 
         actions={
           <>
             <Link href={`/properties/${p.id}/edit`}><Button variant="secondary">Edit</Button></Link>
+            <Link href={`/properties/${p.id}/mortgage`}><Button variant="secondary">Mortgage</Button></Link>
             <Link href={`/properties/${p.id}/rent`}><Button variant="secondary">Rent ledger</Button></Link>
             <Link href={`/properties/${p.id}/compliance`}><Button variant="secondary">Compliance</Button></Link>
             <Link href={`/properties/${p.id}/documents`}><Button variant="secondary">Documents</Button></Link>
@@ -62,8 +63,8 @@ export default async function PropertyPage({ params }: { params: { id: string } 
             <CardTitle>Compliance</CardTitle>
             <CardDescription>The four certificates that keep this property lettable.</CardDescription>
           </CardHeader>
-          <CardBody className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {(['gas_safety', 'eicr', 'epc', 'buildings_insurance'] as const).map((t) => {
+          <CardBody className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            {(['gas_safety', 'eicr', 'epc', 'buildings_insurance', 'legionella'] as const).map((t) => {
               const cert = (certs as ComplianceCertificate[])
                 .filter((c) => c.type === t)
                 .sort((a, b) => (a.expires_on > b.expires_on ? -1 : 1))[0]

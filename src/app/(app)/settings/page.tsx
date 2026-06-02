@@ -1,6 +1,9 @@
+import Link from 'next/link'
+import { Users } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { PageHeader } from '@/components/app-shell'
 import { Card, CardBody, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,7 +15,20 @@ export default async function SettingsPage() {
   return (
     <>
       <PageHeader title="Settings" subtitle="Your profile and notification preferences." />
-      <div className="p-6 max-w-2xl">
+      <div className="p-6 grid gap-6 lg:grid-cols-2 max-w-4xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>Team access</CardTitle>
+            <CardDescription>Invite managers, read-only viewers, and solicitors.</CardDescription>
+          </CardHeader>
+          <CardBody className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-100 text-accent-700"><Users className="h-5 w-5" /></div>
+              <p className="text-sm text-ink-700">Manage team members and access levels.</p>
+            </div>
+            <Link href="/settings/team"><Button variant="secondary">Manage team</Button></Link>
+          </CardBody>
+        </Card>
         <Card>
           <CardHeader>
             <CardTitle>Profile</CardTitle>

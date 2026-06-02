@@ -689,6 +689,34 @@ const messages = [
     sent_at: iso(subDays(today, 2)), read_at: iso(subDays(today, 2)) },
 ]
 
+// ---- mortgages ----
+const mortgages = [
+  { id: 'mg-william', property_id: PROP_WILLIAM, lender: 'Barclays', account_number: 'BCL-99012',
+    mortgage_type: 'interest_only', rate_kind: 'fixed',
+    interest_rate: 5.25, monthly_payment: 1500, monthly_interest: 1500,
+    outstanding_balance: 342500, fix_end_date: ymd(addDays(today, 140)),
+    start_date: ymd(subMonths(today, 28)), product_end_date: ymd(addDays(today, 140)),
+    statement_document_id: null, offer_document_id: null,
+    notes: 'Fix ends within 6 months. Remortgage window open.',
+    created_at: iso(subMonths(today, 28)), updated_at: iso(today) },
+  { id: 'mg-turners', property_id: PROP_TURNERS, lender: 'NatWest', account_number: 'NWB-44023',
+    mortgage_type: 'interest_only', rate_kind: 'fixed',
+    interest_rate: 4.49, monthly_payment: 850, monthly_interest: 850,
+    outstanding_balance: 227000, fix_end_date: ymd(addDays(today, 540)),
+    start_date: ymd(subMonths(today, 22)), product_end_date: ymd(addDays(today, 540)),
+    statement_document_id: null, offer_document_id: null,
+    notes: null,
+    created_at: iso(subMonths(today, 22)), updated_at: iso(today) },
+  { id: 'mg-birchen', property_id: PROP_BIRCHEN, lender: 'HSBC', account_number: 'HSB-11220',
+    mortgage_type: 'interest_only', rate_kind: 'fixed',
+    interest_rate: 3.99, monthly_payment: 1100, monthly_interest: 1100,
+    outstanding_balance: 331000, fix_end_date: ymd(addDays(today, 380)),
+    start_date: ymd(subMonths(today, 30)), product_end_date: ymd(addDays(today, 380)),
+    statement_document_id: null, offer_document_id: null,
+    notes: null,
+    created_at: iso(subMonths(today, 30)), updated_at: iso(today) },
+]
+
 export const DEMO_DATA: Record<string, any[]> = {
   profiles,
   properties,
@@ -708,5 +736,6 @@ export const DEMO_DATA: Record<string, any[]> = {
   invoice_line_items,
   conversations,
   messages,
+  mortgages,
   push_subscriptions: [],
 }

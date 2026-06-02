@@ -9,7 +9,7 @@ import type { ComplianceCertificate, Invoice, Property, RentPayment } from '@/li
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-const SYSTEM = `You are Matt, the AI assistant for Blake UK Homes, a private UK landlord property management app.
+const SYSTEM = `You are Nick, the AI assistant for Blake UK Homes, a private UK landlord property management app.
 You help the owner stay on top of compliance, rent, tenant communication, maintenance, and MTD quarterly tax.
 Be concise (under 200 words), specific, and reference the portfolio data provided in the SYSTEM CONTEXT.
 If you don't know something, say so plainly. Don't use em-dashes.
@@ -101,22 +101,28 @@ export async function POST(req: Request) {
 }
 
 function demoReply(input: string, context: string): string {
-  // Lightweight pattern-based demo reply that uses real demo data
+  // Pattern-based demo reply for the Luton portfolio
   const summary = (context.match(/\{[\s\S]*?\}/)?.[0] ?? '{}')
   if (input.includes('overdue rent') || input.includes('rent overdue')) {
-    return 'Saxon Court is showing rent overdue this month. The Walsh tenancy is on the 15th, and the May payment is unpaid. Want me to draft a reminder?'
+    return 'Turners Road is overdue this month. Robert Andrews messaged that his bank transfer is delayed. Want me to draft a Section 8 reminder?'
   }
   if (input.includes('portfolio') || input.includes('overview')) {
-    return `Portfolio snapshot:\n${summary}\n\nTwo properties are tenanted, one vacant (Marlow Studio). Saxon Court has expired Gas Safety, action needed.`
+    return `Portfolio snapshot:\n${summary}\n\nThree tenanted (Turners Road, Birchengrove, William Street), four vacant, one in legal proceedings (Butterworth Path). Turners Road Gas Safety due in 28 days, Ridgeway Road Insurance expires in 45 days.`
   }
   if (input.includes('reminder')) {
-    return 'You have one expired Gas Safety (Saxon Court, 35 days), Hollow Lane Gas Safety due in 55 days, and an overdue Saxon Court inspection.'
+    return 'Three things on your plate: Turners Road Gas Safety due in 28 days, Ridgeway Road Insurance expires in 45 days, and Butterworth Path Section 8 hearing approaching.'
   }
   if (input.includes('active leases') || input.includes('leases')) {
-    return 'Two active tenancies. Jasmin Patel at Hollow Lane Flat (£1,450/mo, ends in ~5 months). Tom and Aleksandra Walsh at Saxon Court (£1,875/mo, currently rolling).'
+    return 'Three active tenancies: Robert Andrews at Turners Road (£950/mo), Lauren Mitchell at Birchengrove (£1,275/mo), and Kamran Shah at William Street (£1,100/mo).'
   }
   if (input.includes('mtd') || input.includes('tax')) {
-    return 'For the current quarter, Hollow Lane shows £7,200 income and £11,210 in expenses across all 24 HMRC categories. Net loss £4,010. PDF export is on the MTD page.'
+    return 'For the current quarter, William Street shows £7,200 income and £11,210 in expenses across all 24 HMRC categories (net loss £4,010). Turners Road and Birchengrove are lighter. Quarterly xlsx export is on the MTD page.'
   }
-  return "I'm running in demo mode without a live Claude key, but here is what I can see about your portfolio:\n\n" + summary
+  if (input.includes('vacant')) {
+    return 'Four vacant properties: Ramridge Road, Hitchin Road, Ridgeway Road, Kilburn Road. Ridgeway and Kilburn have compliance gaps to close before re-letting.'
+  }
+  if (input.includes('mortgage')) {
+    return "I'll have a definitive answer once we hook up the live mortgage statements. From the demo data, Barclays holds the William Street BTL with £1,500/mo interest. Other lenders TBC."
+  }
+  return "Running in demo mode without a live Claude key. Here's what I can see about your portfolio:\n\n" + summary
 }

@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { TicketTabs } from '@/components/ticket-tabs'
 import { complianceState } from '@/lib/compliance'
 import { arrearsTotal, formatGBP } from '@/lib/rent'
-import { differenceInCalendarDays, parseISO } from 'date-fns'
+import { differenceInCalendarDays, parseISO, format, startOfMonth } from 'date-fns'
 import type { ComplianceCertificate, Property, RentPayment } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
@@ -39,6 +39,16 @@ export default async function PropertiesPage({ searchParams }: { searchParams: {
       .filter((p) => p.property_id === propId && p.status !== 'paid')
       .sort((a, b) => a.due_date.localeCompare(b.due_date))
     return future[0] ?? null
+  }
+
+  const thisMonthStart = format(startOfMonth(today), 'yyyy-MM-dd')
+  function thisMonthStatus(propId: string): { label: string; tone: 'success' | 'warning' | 'danger' | 'neutral' } | null {
+    const p = allPayments.find((x) => x.property_id === propId && x.period_start === thisMonthStart)
+    if (!p) return null
+    if (p.status === 'paid') return { label: 'Paid', tone: 'success' }
+    if (p.status === 'partial') return { label: 'Pending', tone: 'warning' }
+    if (p.status === 'late') return { label: 'Late', tone: 'warning' }
+    return { label: 'Missing', tone: 'danger' }
   }
 
   function categoryFor(p: Property): 'paid' | 'overdue' | 'due_soon' | 'vacant' | 'multi_unit' {
@@ -123,7 +133,15 @@ export default async function PropertiesPage({ searchParams }: { searchParams: {
                           <h3 className="truncate font-semibold text-ink-900">{p.nickname}</h3>
                           <p className="truncate text-xs uppercase tracking-wider text-ink-500">{p.city} · {p.postcode}</p>
                         </div>
-                        {p.listing_type === 'multi_unit_hmo' && <Badge tone="accent">Multi-unit</Badge>}
+                        <div className="flex flex-col items-end gap-1">
+                          {p.listing_type === 'multi_unit_hmo' && <Badge tone="accent">Multi-unit</Badge>}
+                          {(() => {
+                            const tms = thisMonthStatus(p.id)
+                            return tms && p.status === 'tenanted'
+                              ? <Badge tone={tms.tone}>{tms.label} this month</Badge>
+                              : null
+                          })()}
+                        </div>
                       </div>
                       <div className="mt-4 space-y-2">
                         <div>

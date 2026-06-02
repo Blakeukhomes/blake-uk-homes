@@ -102,9 +102,13 @@ export default async function MtdPage({
                         Net {formatGBP(summary.net)}
                       </Badge>
                       <Link href={`/api/pdf/mtd?property=${p.id}&q=${quarter.id}`} target="_blank">
-                        <Button variant="secondary" size="sm">
-                          <Download className="h-4 w-4" /> PDF
-                        </Button>
+                        <Button variant="secondary" size="sm"><Download className="h-4 w-4" /> PDF</Button>
+                      </Link>
+                      <Link href={`/api/xlsx/mtd?property=${p.id}&q=${quarter.id}`} target="_blank">
+                        <Button variant="secondary" size="sm"><Download className="h-4 w-4" /> Xlsx</Button>
+                      </Link>
+                      <Link href={`/api/export/quarterly?property=${p.id}&q=${quarter.id}`} target="_blank">
+                        <Button size="sm"><Download className="h-4 w-4" /> Full zip</Button>
                       </Link>
                     </div>
                   </div>

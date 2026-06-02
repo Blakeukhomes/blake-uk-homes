@@ -59,6 +59,36 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
     }).select('id').single()
     if (insErr) { setError(insErr.message); setBusy(false); return }
 
+    // Inventory PDFs: ask Nick to extract fields and auto-log invoice as Professional Fees
+    if (docKind === 'inventory_move_in' || docKind === 'inventory_move_out') {
+      setProgress('Nick is reading the inventory...')
+      try {
+        const res = await fetch('/api/ai/extract-document', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ document_id: docRow!.id, kind: 'inventory' }),
+        })
+        if (res.ok) {
+          const { fields } = await res.json()
+          if (fields?.invoice_amount && fields.invoice_amount > 0) {
+            await supabase.from('mtd_transactions').insert({
+              property_id: propertyId,
+              document_id: docRow!.id,
+              kind: 'expense',
+              expense_category: 'professional_fees',
+              transaction_date: fields.report_date ?? new Date().toISOString().slice(0, 10),
+              amount: fields.invoice_amount,
+              description: `Inventory clerk: ${fields.company_name ?? title}`,
+              supplier_or_payer: fields.company_name ?? null,
+              created_by: user.id,
+            })
+          }
+        }
+      } catch {
+        // non-fatal
+      }
+    }
+
     // If this is an invoice, also log an MTD transaction
     if (docKind === 'invoice') {
       const amount = Number(fd.get('mtd_amount') || 0)
@@ -107,6 +137,27 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
       <div className="sm:col-span-2">
         <Label htmlFor="file">File</Label>
         <Input id="file" name="file" type="file" required accept="application/pdf,image/*,.doc,.docx" />
+        <p className="mt-1 text-xs text-ink-500">
+          On phones, also try{' '}
+          <label className="cursor-pointer font-semibold text-accent-700 underline">
+            take a photo with the camera
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="sr-only"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                if (!file) return
+                const fileInput = document.getElementById('file') as HTMLInputElement
+                const dt = new DataTransfer()
+                dt.items.add(file)
+                fileInput.files = dt.files
+              }}
+            />
+          </label>
+          {' '}for receipts and certificates.
+        </p>
       </div>
       <div>
         <Label htmlFor="title">Title</Label>

@@ -101,7 +101,7 @@ export function FaultReportForm({
           <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-ink-300 bg-ink-50 px-4 py-6 text-sm text-ink-600 hover:bg-ink-100">
             <Camera className="h-4 w-4" />
             <span>{photos?.length ? `${photos.length} photo(s) attached` : 'Attach photos'}</span>
-            <input type="file" accept="image/*" multiple required hidden onChange={(e) => setPhotos(e.target.files)} />
+            <input type="file" accept="image/*" capture="environment" multiple required hidden onChange={(e) => setPhotos(e.target.files)} />
           </label>
         </div>
         <div>
@@ -109,7 +109,7 @@ export function FaultReportForm({
           <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-ink-300 bg-ink-50 px-4 py-6 text-sm text-ink-600 hover:bg-ink-100">
             <Video className="h-4 w-4" />
             <span>{videos?.length ? `${videos.length} video(s) attached` : 'Attach video'}</span>
-            <input type="file" accept="video/*" multiple required hidden onChange={(e) => setVideos(e.target.files)} />
+            <input type="file" accept="video/*" capture="environment" multiple required hidden onChange={(e) => setVideos(e.target.files)} />
           </label>
         </div>
       </div>

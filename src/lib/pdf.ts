@@ -125,6 +125,37 @@ export function arrearsPdf(input: {
   return Buffer.from(doc.output('arraybuffer'))
 }
 
+export function messagesPdf(input: {
+  contact_name: string
+  property_name?: string
+  category: string
+  messages: { sender: string; sender_name: string | null; body: string; sent_at: string }[]
+}) {
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+  header(doc, `Message transcript, ${input.contact_name}`)
+
+  doc.setFont('helvetica', 'normal').setFontSize(10).setTextColor(20)
+  doc.text(`Category: ${input.category}`, 14, 42)
+  if (input.property_name) doc.text(`Property: ${input.property_name}`, 14, 48)
+
+  autoTable(doc, {
+    startY: 56,
+    head: [['Timestamp', 'Sender', 'Message']],
+    body: input.messages.map((m) => [
+      new Date(m.sent_at).toLocaleString('en-GB'),
+      `${m.sender_name ?? m.sender} (${m.sender})`,
+      m.body,
+    ]),
+    styles: { fontSize: 9, cellPadding: 2.5, valign: 'top' },
+    headStyles: { fillColor: [99, 102, 241], textColor: 255 },
+    columnStyles: { 0: { cellWidth: 36 }, 1: { cellWidth: 40 } },
+    margin: { left: 14, right: 14 },
+  })
+
+  footer(doc)
+  return Buffer.from(doc.output('arraybuffer'))
+}
+
 export function mtdQuarterPdf(input: {
   property: { nickname: string; address: string }
   quarter: { label: string; start: string; end: string }

@@ -83,7 +83,7 @@ export function AssistantChat() {
               >
                 {m.role === 'assistant' && (
                   <p className="mb-1 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-accent-700">
-                    <Sparkles className="h-3 w-3" /> Matt
+                    <Sparkles className="h-3 w-3" /> Nick
                   </p>
                 )}
                 <p>{m.body}</p>
@@ -98,7 +98,7 @@ export function AssistantChat() {
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent-500" />
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent-500" style={{ animationDelay: '0.2s' }} />
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent-500" style={{ animationDelay: '0.4s' }} />
-                Matt is thinking
+                Nick is thinking
               </span>
             </div>
           </div>
