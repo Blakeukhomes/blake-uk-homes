@@ -50,6 +50,7 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
         actions={
           <>
             <Link href="/invoices"><Button variant="ghost"><ArrowLeft className="h-4 w-4" />Back</Button></Link>
+            <Link href={`/invoices/${inv.id}/edit`}><Button variant="secondary">Edit</Button></Link>
             {inv.status === 'draft' && (
               <form action={markSent}><Button type="submit"><Send className="h-4 w-4" />Mark sent</Button></form>
             )}

@@ -200,8 +200,11 @@ export default async function MtdPage({
                           {t.description}
                           {t.supplier_or_payer ? <span className="text-xs text-ink-400"> · {t.supplier_or_payer}</span> : null}
                         </td>
-                        <td className={`px-6 py-2 text-right font-medium ${t.kind === 'income' ? 'text-success-700' : 'text-ink-900'}`}>
+                        <td className={`px-2 py-2 text-right font-medium ${t.kind === 'income' ? 'text-success-700' : 'text-ink-900'}`}>
                           {t.kind === 'expense' ? '-' : ''}{formatGBP(t.amount)}
+                        </td>
+                        <td className="px-6 py-2 text-right">
+                          <Link href={`/mtd/${t.id}/edit`} className="text-xs font-semibold text-accent-700 underline">Edit</Link>
                         </td>
                       </tr>
                     )

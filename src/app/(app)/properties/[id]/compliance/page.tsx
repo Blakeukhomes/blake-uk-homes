@@ -42,6 +42,16 @@ export default async function PropertyCompliance({ params }: { params: { id: str
     revalidatePath('/dashboard')
   }
 
+  async function deleteCertificate(formData: FormData) {
+    'use server'
+    const supabase = createClient()
+    const id = String(formData.get('cert_id'))
+    await supabase.from('compliance_certificates').delete().eq('id', id)
+    revalidatePath(`/properties/${params.id}/compliance`)
+    revalidatePath('/compliance')
+    revalidatePath('/dashboard')
+  }
+
   return (
     <>
       <PageHeader title={`${property.nickname}, Compliance`} subtitle="Add new certificates; expiry is calculated automatically." />
@@ -97,7 +107,7 @@ export default async function PropertyCompliance({ params }: { params: { id: str
                 {(certs as ComplianceCertificate[]).map((c) => {
                   const state = complianceState(c)
                   return (
-                    <li key={c.id} className="grid gap-2 px-6 py-4 sm:grid-cols-[1fr_auto_auto]">
+                    <li key={c.id} className="grid gap-2 px-6 py-4 sm:grid-cols-[1fr_auto_auto_auto] sm:items-center">
                       <div>
                         <p className="font-medium text-ink-900">{COMPLIANCE_META[c.type].shortLabel}</p>
                         <p className="text-xs text-ink-500">
@@ -110,6 +120,10 @@ export default async function PropertyCompliance({ params }: { params: { id: str
                       <Badge tone={state === 'expired' ? 'danger' : state === 'due_soon' ? 'warning' : 'success'}>
                         {state === 'expired' ? 'Expired' : state === 'due_soon' ? 'Due soon' : 'Valid'}
                       </Badge>
+                      <form action={deleteCertificate}>
+                        <input type="hidden" name="cert_id" value={c.id} />
+                        <Button type="submit" variant="ghost" size="sm" className="text-danger-700">Delete</Button>
+                      </form>
                     </li>
                   )
                 })}

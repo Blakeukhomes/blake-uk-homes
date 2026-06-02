@@ -39,7 +39,12 @@ export default async function TicketPage({ params }: { params: { id: string } })
       <PageHeader
         title={t.title}
         subtitle={`${t.properties?.nickname} · due ${new Date(t.due_on).toLocaleDateString('en-GB')}`}
-        actions={<Link href="/maintenance"><Button variant="ghost"><ArrowLeft className="h-4 w-4" />Back</Button></Link>}
+        actions={
+          <>
+            <Link href="/maintenance"><Button variant="ghost"><ArrowLeft className="h-4 w-4" />Back</Button></Link>
+            <Link href={`/maintenance/${t.id}/edit`}><Button variant="secondary">Edit</Button></Link>
+          </>
+        }
       />
       <div className="p-6 grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">

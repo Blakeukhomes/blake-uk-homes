@@ -37,6 +37,7 @@ export default async function PropertyPage({ params }: { params: { id: string } 
         subtitle={`${p.address_line_1}, ${p.city} ${p.postcode}`}
         actions={
           <>
+            <Link href={`/properties/${p.id}/edit`}><Button variant="secondary">Edit</Button></Link>
             <Link href={`/properties/${p.id}/rent`}><Button variant="secondary">Rent ledger</Button></Link>
             <Link href={`/properties/${p.id}/compliance`}><Button variant="secondary">Compliance</Button></Link>
             <Link href={`/properties/${p.id}/documents`}><Button variant="secondary">Documents</Button></Link>
@@ -96,12 +97,15 @@ export default async function PropertyPage({ params }: { params: { id: string } 
             <CardBody>
               {tenant ? (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="font-medium text-ink-900">{tenant.full_name}</p>
                       <p className="text-sm text-ink-500">{tenant.email ?? '-'} · {tenant.phone ?? '-'}</p>
                     </div>
-                    <Badge tone="success">Active</Badge>
+                    <div className="flex items-center gap-2">
+                      <Link href={`/properties/${p.id}/tenants/${tenant.id}/edit`} className="text-xs font-semibold text-accent-700 underline">Edit</Link>
+                      <Badge tone="success">Active</Badge>
+                    </div>
                   </div>
                   <div className="rounded-lg bg-ink-50 p-3 text-xs">
                     <p className="font-medium text-ink-700">Tenant portal link</p>

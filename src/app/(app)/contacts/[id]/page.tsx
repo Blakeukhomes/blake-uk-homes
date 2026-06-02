@@ -24,6 +24,7 @@ export default async function ContactDetailPage({ params }: { params: { id: stri
         actions={
           <>
             <Link href="/contacts"><Button variant="ghost"><ArrowLeft className="h-4 w-4" />Back</Button></Link>
+            <Link href={`/contacts/${c.id}/edit`}><Button variant="secondary">Edit</Button></Link>
             <Link href={`/messages/new?contact=${c.id}`}><Button>Message</Button></Link>
           </>
         }
