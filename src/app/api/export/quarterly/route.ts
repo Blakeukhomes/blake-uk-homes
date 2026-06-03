@@ -141,7 +141,7 @@ Contents:
 
   const buffer = await zip.generateAsync({ type: 'nodebuffer' })
 
-  return new NextResponse(buffer, {
+  return new NextResponse(new Uint8Array(buffer), {
     headers: {
       'Content-Type': 'application/zip',
       'Content-Disposition': `attachment; filename="${root}.zip"`,

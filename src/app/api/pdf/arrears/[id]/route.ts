@@ -25,7 +25,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     arrearsTotal: arrearsTotal((payments ?? []) as any),
   })
 
-  return new NextResponse(pdf, {
+  return new NextResponse(new Uint8Array(pdf), {
     headers: {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `inline; filename="arrears-${property.nickname.replace(/\s+/g, '-')}.pdf"`,

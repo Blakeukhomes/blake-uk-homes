@@ -33,7 +33,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     bookings: (bookings ?? []) as any,
   })
 
-  return new NextResponse(pdf, {
+  return new NextResponse(new Uint8Array(pdf), {
     headers: {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `inline; filename="fault-${f.reference}.pdf"`,

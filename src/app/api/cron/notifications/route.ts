@@ -1,4 +1,4 @@
-// Daily cron, call from Vercel cron with header `Authorization: Bearer ${CRON_SECRET}`.
+// Daily cron, called by Vercel Cron with Authorization: Bearer CRON_SECRET.
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/notifications/email'
@@ -7,22 +7,31 @@ import { complianceEvents, faultEvents, inspectionEvents, rentEvents } from '@/l
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
+type ProfileLite = { id: string; email: string; role: string }
+
 export async function GET(req: Request) {
   const expected = process.env.CRON_SECRET
   if (expected) {
     const auth = req.headers.get('authorization')
-    if (auth !== `Bearer ${expected}`) return new NextResponse('Forbidden', { status: 403 })
+    if (auth !== 'Bearer ' + expected) {
+      return new NextResponse('Forbidden', { status: 403 })
+    }
   }
 
   const sb = createServiceClient()
-  const [{ data: certs = [] }, { data: payments = [] }, { data: tasks = [] }, { data: faults = [] }, { data: profiles = [] }] =
-    await Promise.all([
-      sb.from('compliance_certificates').select('*'),
-      sb.from('rent_payments').select('*').neq('status', 'paid'),
-      sb.from('maintenance_tasks').select('*').is('completed_on', null),
-      sb.from('fault_reports').select('*'),
-      sb.from('profiles').select('id, email, role'),
-    ])
+  const [
+    { data: certs = [] },
+    { data: payments = [] },
+    { data: tasks = [] },
+    { data: faults = [] },
+    { data: profiles = [] },
+  ] = await Promise.all([
+    sb.from('compliance_certificates').select('*'),
+    sb.from('rent_payments').select('*').neq('status', 'paid'),
+    sb.from('maintenance_tasks').select('*').is('completed_on', null),
+    sb.from('fault_reports').select('*'),
+    sb.from('profiles').select('id, email, role'),
+  ])
 
   const events = [
     ...complianceEvents(certs as any),
@@ -31,32 +40,36 @@ export async function GET(req: Request) {
     ...faultEvents(faults as any),
   ]
 
-  // Send email events to property owners.
   const { data: properties = [] } = await sb.from('properties').select('id, owner_id')
   const ownerByProperty = new Map<string, string>(
-    (properties ?? []).map((p: any) => [p.id, p.owner_id]),
+    (properties ?? []).map((p: any) => [p.id as string, p.owner_id as string])
   )
-  const profileById = new Map((profiles ?? []).map((p: any) => [p.id, p]))
+  const profileById = new Map<string, ProfileLite>(
+    (profiles ?? []).map((p: any) => [p.id as string, p as ProfileLite])
+  )
 
   let sent = 0
   for (const ev of events) {
     const ownerId = ownerByProperty.get(ev.property_id)
     const profile = ownerId ? profileById.get(ownerId) : null
-    if (!profile?.email) continue
+    if (!profile || !profile.email) continue
 
-    // Persist
     await sb.from('notifications').insert({
-      user_id: ownerId, property_id: ev.property_id,
-      channel: ev.channel, subject: ev.subject, body: ev.body,
+      user_id: ownerId,
+      property_id: ev.property_id,
+      channel: ev.channel,
+      subject: ev.subject,
+      body: ev.body,
     })
 
     if (ev.channel === 'email' && process.env.SENDGRID_API_KEY) {
       try {
         await sendEmail({ to: profile.email, subject: ev.subject, text: ev.body })
         sent++
-      } catch {}
+      } catch {
+        // non-fatal
+      }
     }
-    // Push delivery is left to a dedicated runner; this row gets picked up by the next job.
   }
 
   return NextResponse.json({ events: events.length, emailsSent: sent })

@@ -33,7 +33,7 @@ export default async function MessagesPage({
   const { data: conversations = [] } = await convQuery
   const { data: contacts = [] } = await supabase.from('contacts').select('id, full_name, kind')
   const convs = (conversations ?? []) as Conversation[]
-  const contactMap = new Map((contacts ?? []).map((c: any) => [c.id, c as Contact]))
+  const contactMap = new Map<string, Contact>((contacts ?? []).map((c: any) => [c.id as string, c as Contact]))
 
   // Active conversation (default: first one)
   const activeId = searchParams.c ?? convs[0]?.id ?? null

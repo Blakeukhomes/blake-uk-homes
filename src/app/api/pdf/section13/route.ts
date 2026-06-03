@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     reason: (fd.get('reason') as string) || null,
   })
 
-  return new NextResponse(pdf, {
+  return new NextResponse(new Uint8Array(pdf), {
     headers: {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `inline; filename="section13-${property.nickname.replace(/\s+/g, '-')}.pdf"`,

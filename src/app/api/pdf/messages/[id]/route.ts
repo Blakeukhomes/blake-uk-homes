@@ -26,7 +26,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     })),
   })
 
-  return new NextResponse(pdf, {
+  return new NextResponse(new Uint8Array(pdf), {
     headers: {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `inline; filename="messages-${params.id}.pdf"`,

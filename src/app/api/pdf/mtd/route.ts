@@ -44,7 +44,7 @@ export async function GET(req: Request) {
     net: summary.net,
   })
 
-  return new NextResponse(pdf, {
+  return new NextResponse(new Uint8Array(pdf), {
     headers: {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `inline; filename="mtd-${quarter.id}-${property.nickname.replace(/\s+/g, '-')}.pdf"`,
