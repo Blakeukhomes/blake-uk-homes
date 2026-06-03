@@ -107,7 +107,7 @@ export default async function PropertyMortgagePage({ params }: { params: { id: s
           <CardHeader>
             <CardTitle>{m ? 'Edit mortgage' : 'Add mortgage'}</CardTitle>
             <CardDescription>
-              <span className="inline-flex items-center gap-1 text-accent-700"><Sparkles className="h-3.5 w-3.5" />Upload a statement on the Documents page and Nick AI will pre-fill these fields.</span>
+              <span className="inline-flex items-center gap-1 text-accent-700"><Sparkles className="h-3.5 w-3.5" />Upload a statement on the Documents page and Hudson AI will pre-fill these fields.</span>
             </CardDescription>
           </CardHeader>
           <CardBody>

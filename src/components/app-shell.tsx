@@ -36,7 +36,7 @@ const NAV = [
   { href: '/maintenance', label: 'Maintenance',icon: Wrench },
   { href: '/documents',   label: 'Documents',  icon: FolderArchive },
   { href: '/reports',     label: 'Reports',    icon: FileBarChart },
-  { href: '/assistant',   label: 'AI Nick',    icon: Sparkles },
+  { href: '/assistant',   label: 'AI Hudson',    icon: Sparkles },
   { href: '/tenants',     label: 'Tenants',    icon: Users },
   { href: '/notices',     label: 'Notices',    icon: FileSignature },
   { href: '/notifications', label: 'Alerts',   icon: Bell },

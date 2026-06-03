@@ -1,7 +1,7 @@
-// Robot avatar for "Nick" the AI assistant. SVG, no external assets.
+// Robot avatar for "Hudson" the AI assistant. SVG, no external assets.
 import { cn } from '@/lib/cn'
 
-export function NickAvatar({ className }: { className?: string }) {
+export function HudsonAvatar({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 120 130" xmlns="http://www.w3.org/2000/svg" className={cn('block', className)} aria-hidden>
       {/* antenna */}
@@ -26,8 +26,8 @@ export function NickAvatar({ className }: { className?: string }) {
       {/* tie */}
       <polygon points="60,68 56,72 60,98 64,72" fill="#6366f1" />
       {/* name tag */}
-      <rect x="68" y="76" width="20" height="10" rx="1" fill="white" stroke="#cbd5e1" strokeWidth="1" />
-      <text x="78" y="83" textAnchor="middle" fontSize="6" fontWeight="700" fill="#0f172a">Nick</text>
+      <rect x="62" y="76" width="30" height="10" rx="1" fill="white" stroke="#cbd5e1" strokeWidth="1" />
+      <text x="78" y="83" textAnchor="middle" fontSize="6" fontWeight="700" fill="#0f172a">Hudson</text>
 
       {/* arms */}
       <rect x="20" y="76" width="10" height="22" rx="4" fill="#cbd5e1" />

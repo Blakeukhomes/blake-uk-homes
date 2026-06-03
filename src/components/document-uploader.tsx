@@ -59,9 +59,9 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
     }).select('id').single()
     if (insErr) { setError(insErr.message); setBusy(false); return }
 
-    // Inventory PDFs: ask Nick to extract fields and auto-log invoice as Professional Fees
+    // Inventory PDFs: ask Hudson to extract fields and auto-log invoice as Professional Fees
     if (docKind === 'inventory_move_in' || docKind === 'inventory_move_out') {
-      setProgress('Nick is reading the inventory...')
+      setProgress('Hudson is reading the inventory...')
       try {
         const res = await fetch('/api/ai/extract-document', {
           method: 'POST',
