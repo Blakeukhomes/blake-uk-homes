@@ -262,6 +262,7 @@ export type DocumentKind =
   | 'eicr'
   | 'epc'
   | 'buildings_insurance'
+  | 'legionella'
   | 'tenancy_agreement'
   | 'deposit_certificate'
   | 'how_to_rent'

@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Sparkles, Receipt } from 'lucide-react'
+import { Sparkles, Receipt, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input, Label, Select } from '@/components/ui/input'
 import { createClient } from '@/lib/supabase/client'
@@ -9,18 +9,33 @@ import type { DocumentKind } from '@/lib/types'
 import { EXPENSE_CATEGORIES } from '@/lib/mtd'
 
 const KIND_OPTIONS: { value: DocumentKind; label: string }[] = [
-  { value: 'tenancy_agreement', label: 'Tenancy Agreement' },
-  { value: 'deposit_certificate', label: 'Deposit Certificate' },
-  { value: 'how_to_rent', label: 'How to Rent guide' },
-  { value: 'inventory_move_in', label: 'Move-in Inventory' },
-  { value: 'inventory_move_out', label: 'Move-out Inventory' },
-  { value: 'gas_safety', label: 'Gas Safety' },
-  { value: 'eicr', label: 'EICR' },
-  { value: 'epc', label: 'EPC' },
+  { value: 'gas_safety',          label: 'Gas Safety Certificate' },
+  { value: 'eicr',                label: 'EICR (Electrical)' },
+  { value: 'epc',                 label: 'EPC (Energy Performance)' },
+  { value: 'legionella',          label: 'Legionella Risk Assessment' },
   { value: 'buildings_insurance', label: 'Buildings Insurance' },
-  { value: 'invoice', label: 'Invoice (MTD tagged)' },
-  { value: 'other', label: 'Other' },
+  { value: 'tenancy_agreement',   label: 'Tenancy Agreement' },
+  { value: 'deposit_certificate', label: 'Deposit Certificate' },
+  { value: 'how_to_rent',         label: 'How to Rent guide' },
+  { value: 'inventory_move_in',   label: 'Move-in Inventory' },
+  { value: 'inventory_move_out',  label: 'Move-out Inventory' },
+  { value: 'invoice',             label: 'Invoice (MTD tagged)' },
+  { value: 'other',               label: 'Other' },
 ]
+
+// Which DocumentKinds map to which compliance type + extraction schema
+const COMPLIANCE_FLOW: Partial<Record<DocumentKind, { schemaKind: string; complianceType: string; label: string }>> = {
+  gas_safety:          { schemaKind: 'gas_safety',          complianceType: 'gas_safety',          label: 'Gas Safety' },
+  eicr:                { schemaKind: 'eicr',                complianceType: 'eicr',                label: 'EICR' },
+  epc:                 { schemaKind: 'epc',                 complianceType: 'epc',                 label: 'EPC' },
+  legionella:          { schemaKind: 'legionella',          complianceType: 'legionella',          label: 'Legionella' },
+  buildings_insurance: { schemaKind: 'buildings_insurance', complianceType: 'buildings_insurance', label: 'Buildings Insurance' },
+}
+
+interface ExtractedSummary {
+  label: string
+  fields: Record<string, any>
+}
 
 export function DocumentUploader({ propertyId }: { propertyId: string }) {
   const supabase = createClient()
@@ -28,11 +43,12 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
   const [busy, setBusy] = useState(false)
   const [progress, setProgress] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [kind, setKind] = useState<DocumentKind>('tenancy_agreement')
+  const [kind, setKind] = useState<DocumentKind>('gas_safety')
+  const [extracted, setExtracted] = useState<ExtractedSummary | null>(null)
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setError(null); setBusy(true); setProgress('Uploading...')
+    setError(null); setExtracted(null); setBusy(true); setProgress('Uploading...')
     const form = e.currentTarget
     const fd = new FormData(form)
     const file = fd.get('file') as File
@@ -56,10 +72,53 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
       kind: docKind, title, storage_path: path,
       mime_type: file.type, file_size: file.size,
       visible_to_tenant,
-    }).select('id').single()
+    } as any).select('id').single()
     if (insErr) { setError(insErr.message); setBusy(false); return }
 
-    // Inventory PDFs: ask Hudson to extract fields and auto-log invoice as Professional Fees
+    // ---- Compliance certificates (Gas, EICR, EPC, Legionella, Insurance): auto-extract + create cert row ----
+    const flow = COMPLIANCE_FLOW[docKind]
+    if (flow) {
+      setProgress(`Hudson is reading the ${flow.label.toLowerCase()}...`)
+      try {
+        const res = await fetch('/api/ai/extract-document', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ document_id: docRow!.id, kind: flow.schemaKind }),
+        })
+        if (res.ok) {
+          const { fields } = await res.json() as { fields: Record<string, any> }
+          const completedOn = fields.inspection_date ?? fields.assessment_date ?? fields.cover_start_date
+          const expiresOn   = fields.expiry_date ?? fields.next_review_due ?? fields.cover_end_date
+          if (completedOn && expiresOn) {
+            const issuedBy =
+              fields.engineer_name ?? fields.inspector_name ?? fields.assessor_name ?? fields.insurer ?? null
+            const reference =
+              fields.gas_safe_number ?? fields.certificate_number ?? fields.reference_number ?? fields.policy_number ?? fields.reference ?? null
+            const notes = fields.defects_found ?? fields.actions_required ?? null
+
+            const { error: certErr } = await supabase.from('compliance_certificates').insert({
+              property_id: propertyId,
+              type: flow.complianceType,
+              completed_on: completedOn,
+              expires_on: expiresOn,
+              document_id: docRow!.id,
+              issued_by: issuedBy,
+              reference: reference,
+              notes: notes,
+            } as any)
+            if (!certErr) {
+              setExtracted({ label: flow.label, fields: { ...fields, completed_on: completedOn, expires_on: expiresOn } })
+            }
+          } else {
+            setExtracted({ label: flow.label, fields })
+          }
+        }
+      } catch {
+        // non-fatal — user can manually add the compliance record
+      }
+    }
+
+    // ---- Inventory PDFs: extract + log invoice to MTD as Professional Fees ----
     if (docKind === 'inventory_move_in' || docKind === 'inventory_move_out') {
       setProgress('Hudson is reading the inventory...')
       try {
@@ -81,7 +140,8 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
               description: `Inventory clerk: ${fields.company_name ?? title}`,
               supplier_or_payer: fields.company_name ?? null,
               created_by: user.id,
-            })
+            } as any)
+            setExtracted({ label: 'Inventory', fields })
           }
         }
       } catch {
@@ -89,7 +149,7 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
       }
     }
 
-    // If this is an invoice, also log an MTD transaction
+    // ---- Manual invoice MTD line (existing flow, kept) ----
     if (docKind === 'invoice') {
       const amount = Number(fd.get('mtd_amount') || 0)
       const expense_category = String(fd.get('mtd_category') || 'other')
@@ -108,10 +168,11 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
           description: title,
           supplier_or_payer,
           created_by: user.id,
-        })
+        } as any)
       }
     }
 
+    // ---- Plain-language Claude summary (optional, runs in background) ----
     if (run_ai) {
       setProgress('Summarising with Claude...')
       try {
@@ -170,6 +231,13 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
         </Select>
       </div>
 
+      {COMPLIANCE_FLOW[kind] && (
+        <div className="sm:col-span-2 flex items-start gap-2 rounded-lg border border-accent-200 bg-accent-50 px-3 py-2 text-xs text-accent-800">
+          <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <p>Hudson will read this certificate, extract the expiry date and issuer, and create a compliance record automatically.</p>
+        </div>
+      )}
+
       {isInvoice && (
         <div className="sm:col-span-2 rounded-lg border border-accent-200 bg-accent-50 p-4">
           <p className="mb-3 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent-700">
@@ -206,7 +274,24 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
         <input type="checkbox" name="run_ai" defaultChecked className="rounded border-ink-300" />
         <Sparkles className="h-4 w-4 text-accent-500" /> Generate Claude summary
       </label>
+
       {error && <p className="sm:col-span-2 rounded bg-danger-100 px-3 py-2 text-sm text-danger-700">{error}</p>}
+
+      {extracted && (
+        <div className="sm:col-span-2 rounded-lg border border-success-500/30 bg-success-50 p-4 text-sm">
+          <p className="mb-2 inline-flex items-center gap-2 font-semibold text-success-700">
+            <CheckCircle2 className="h-4 w-4" /> Hudson logged this {extracted.label}
+          </p>
+          <ul className="grid gap-1 text-xs text-success-700 sm:grid-cols-2">
+            {Object.entries(extracted.fields)
+              .filter(([, v]) => v !== null && v !== undefined && v !== '')
+              .map(([k, v]) => (
+                <li key={k}><span className="font-medium">{k.replace(/_/g, ' ')}:</span> {String(v)}</li>
+              ))}
+          </ul>
+        </div>
+      )}
+
       <div className="sm:col-span-2 flex justify-end gap-2">
         {progress && <span className="self-center text-sm text-ink-500">{progress}</span>}
         <Button type="submit" disabled={busy}>Upload</Button>

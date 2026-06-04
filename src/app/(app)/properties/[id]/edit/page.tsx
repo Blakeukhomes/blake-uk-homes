@@ -8,6 +8,7 @@ import { Card, CardBody } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input, Label, Select, Textarea } from '@/components/ui/input'
 import type { Property } from '@/lib/types'
+import { AddressFields } from '@/components/address-fields'
 
 export const dynamic = 'force-dynamic'
 
@@ -68,30 +69,14 @@ export default async function EditPropertyPage({ params }: { params: { id: strin
                 <Input id="nickname" name="nickname" required defaultValue={p.nickname} />
               </div>
 
-              <div className="sm:col-span-2">
-                <Label htmlFor="address_line_1">Address line 1</Label>
-                <Input id="address_line_1" name="address_line_1" required defaultValue={p.address_line_1} />
-              </div>
-              <div className="sm:col-span-2">
-                <Label htmlFor="address_line_2">Address line 2</Label>
-                <Input id="address_line_2" name="address_line_2" defaultValue={p.address_line_2 ?? ''} />
-              </div>
-              <div>
-                <Label htmlFor="city">City</Label>
-                <Input id="city" name="city" required defaultValue={p.city} />
-              </div>
-              <div>
-                <Label htmlFor="postcode">Postcode</Label>
-                <Input id="postcode" name="postcode" required defaultValue={p.postcode} />
-              </div>
-              <div className="sm:col-span-2">
-                <Label htmlFor="country">Country</Label>
-                <Select id="country" name="country" defaultValue={p.country ?? 'United Kingdom'}>
-                  <option value="United Kingdom">United Kingdom</option>
-                  <option value="Ireland">Ireland</option>
-                  <option value="Other">Other</option>
-                </Select>
-              </div>
+              <AddressFields
+                defaultLine1={p.address_line_1}
+                defaultLine2={p.address_line_2 ?? ''}
+                defaultCity={p.city}
+                defaultPostcode={p.postcode}
+                defaultCountry={p.country ?? 'United Kingdom'}
+              />
+
 
               <div className="sm:col-span-2">
                 <Label>Property type</Label>

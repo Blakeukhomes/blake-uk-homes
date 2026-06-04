@@ -27,6 +27,80 @@ const SCHEMAS: Record<string, { name: string; description: string; input_schema:
       required: ['property_address', 'engineer_name', 'inspection_date'],
     },
   },
+  eicr: {
+    name: 'extract_eicr',
+    description: 'Extract fields from a UK Electrical Installation Condition Report (EICR).',
+    input_schema: {
+      type: 'object',
+      properties: {
+        property_address:    { type: 'string' },
+        inspector_name:      { type: 'string', description: 'The electrician who carried out the test' },
+        inspector_company:   { type: 'string' },
+        certificate_number:  { type: 'string', description: 'Certificate or report reference number' },
+        registration_body:   { type: 'string', enum: ['NICEIC', 'NAPIT', 'ELECSA', 'STROMA', 'Other'] },
+        inspection_date:     { type: 'string', description: 'ISO yyyy-mm-dd' },
+        expiry_date:         { type: 'string', description: 'ISO yyyy-mm-dd, typically +5 years' },
+        overall_assessment:  { type: 'string', enum: ['satisfactory', 'unsatisfactory'] },
+        defects_found:       { type: 'string', description: 'Summary of any C1, C2, C3 or FI codes raised' },
+      },
+      required: ['property_address', 'inspector_name', 'inspection_date'],
+    },
+  },
+  epc: {
+    name: 'extract_epc',
+    description: 'Extract fields from a UK Energy Performance Certificate (EPC).',
+    input_schema: {
+      type: 'object',
+      properties: {
+        property_address:     { type: 'string' },
+        assessor_name:        { type: 'string' },
+        assessor_number:      { type: 'string' },
+        assessment_date:      { type: 'string', description: 'ISO yyyy-mm-dd' },
+        expiry_date:          { type: 'string', description: 'ISO yyyy-mm-dd, typically +10 years' },
+        energy_rating:        { type: 'string', enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G'] },
+        energy_score:         { type: 'number', description: '0-100 normally, can exceed 100 for very inefficient' },
+        environmental_rating: { type: 'string', enum: ['A', 'B', 'C', 'D', 'E', 'F', 'G'] },
+        reference_number:     { type: 'string' },
+      },
+      required: ['property_address', 'assessment_date', 'energy_rating'],
+    },
+  },
+  legionella: {
+    name: 'extract_legionella',
+    description: 'Extract fields from a UK Legionella Risk Assessment for a rental property.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        property_address: { type: 'string' },
+        assessor_name:    { type: 'string' },
+        assessor_company: { type: 'string' },
+        assessment_date:  { type: 'string', description: 'ISO yyyy-mm-dd' },
+        next_review_due:  { type: 'string', description: 'ISO yyyy-mm-dd, typically +2 years' },
+        risk_rating:      { type: 'string', enum: ['low', 'medium', 'high'] },
+        actions_required: { type: 'string' },
+        reference:        { type: 'string' },
+      },
+      required: ['property_address', 'assessment_date'],
+    },
+  },
+  buildings_insurance: {
+    name: 'extract_buildings_insurance',
+    description: 'Extract fields from a UK landlord Buildings Insurance certificate or schedule.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        property_address:      { type: 'string' },
+        insurer:               { type: 'string' },
+        policy_number:         { type: 'string' },
+        cover_start_date:      { type: 'string', description: 'ISO yyyy-mm-dd' },
+        cover_end_date:        { type: 'string', description: 'ISO yyyy-mm-dd' },
+        sum_insured_buildings: { type: 'number', description: 'Total buildings reinstatement sum, GBP' },
+        annual_premium:        { type: 'number', description: 'Total annual premium paid, GBP' },
+        broker:                { type: 'string' },
+      },
+      required: ['insurer', 'cover_end_date'],
+    },
+  },
   mortgage_statement: {
     name: 'extract_mortgage_statement',
     description: 'Extract fields from a UK BTL mortgage statement.',
@@ -78,13 +152,13 @@ const SCHEMAS: Record<string, { name: string; description: string; input_schema:
     input_schema: {
       type: 'object',
       properties: {
-        company_name: { type: 'string' },
-        clerk_name:   { type: 'string' },
-        tenant_name:  { type: 'string' },
+        company_name:     { type: 'string' },
+        clerk_name:       { type: 'string' },
+        tenant_name:      { type: 'string' },
         property_address: { type: 'string' },
-        report_date:  { type: 'string', description: 'ISO yyyy-mm-dd' },
-        invoice_amount: { type: 'number' },
-        report_type:  { type: 'string', enum: ['move_in', 'move_out', 'invoice'] },
+        report_date:      { type: 'string', description: 'ISO yyyy-mm-dd' },
+        invoice_amount:   { type: 'number' },
+        report_type:      { type: 'string', enum: ['move_in', 'move_out', 'invoice'] },
       },
       required: ['company_name', 'report_date'],
     },
@@ -124,7 +198,10 @@ export async function POST(req: Request) {
       text = bytes.toString('utf8')
     }
 
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return NextResponse.json({ error: 'ANTHROPIC_API_KEY is not set on the server' }, { status: 500 })
+    }
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
     const model = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6'
 
     const schema = SCHEMAS[kind]
@@ -136,7 +213,7 @@ export async function POST(req: Request) {
     } else {
       return NextResponse.json({ error: 'Unsupported file type' }, { status: 415 })
     }
-    userContent.push({ type: 'text', text: `Use the ${schema.name} tool to return the extracted fields. If a field is unknown, omit it.` })
+    userContent.push({ type: 'text', text: `Use the ${schema.name} tool to return the extracted fields. If a field is unknown, omit it. Dates must be ISO yyyy-mm-dd format.` })
 
     const resp = await anthropic.messages.create({
       model,
@@ -146,7 +223,6 @@ export async function POST(req: Request) {
       messages: [{ role: 'user', content: userContent }],
     })
 
-    // Find the tool_use block in the response
     const toolUse = resp.content.find((c: any) => c.type === 'tool_use')
     const fields = toolUse ? (toolUse as any).input : {}
     return NextResponse.json({ fields })
@@ -164,6 +240,48 @@ function demoFields(kind: string) {
     expiry_date: '2027-03-14',
     defects_found: 'None',
     reference: 'NG-2025-8810',
+  }
+  if (kind === 'eicr') return {
+    property_address: 'Turners Road, Luton LU2',
+    inspector_name: 'James Wilkins',
+    inspector_company: 'Wilkins Electrical Services',
+    certificate_number: 'EICR-26-4421',
+    registration_body: 'NICEIC',
+    inspection_date: '2026-02-08',
+    expiry_date: '2031-02-08',
+    overall_assessment: 'satisfactory',
+    defects_found: 'None',
+  }
+  if (kind === 'epc') return {
+    property_address: 'Birchengrove, Luton LU3',
+    assessor_name: 'Sarah Thompson',
+    assessor_number: 'DEA-9912',
+    assessment_date: '2024-11-22',
+    expiry_date: '2034-11-22',
+    energy_rating: 'C',
+    energy_score: 72,
+    environmental_rating: 'D',
+    reference_number: 'EPC-2024-77119',
+  }
+  if (kind === 'legionella') return {
+    property_address: 'Ramridge Road, Luton LU2 0TA',
+    assessor_name: 'David Murphy',
+    assessor_company: 'Aqua Safe Risk Assessors',
+    assessment_date: '2026-01-15',
+    next_review_due: '2028-01-15',
+    risk_rating: 'low',
+    actions_required: 'Run all outlets weekly. Re-assess in 2 years.',
+    reference: 'LRA-26-118',
+  }
+  if (kind === 'buildings_insurance') return {
+    property_address: 'Hitchin Road, Luton LU2 7SR',
+    insurer: 'Direct Line For Business',
+    policy_number: 'DLB-LL-9981234',
+    cover_start_date: '2026-04-01',
+    cover_end_date: '2027-03-31',
+    sum_insured_buildings: 280000,
+    annual_premium: 412,
+    broker: 'Direct',
   }
   if (kind === 'mortgage_statement') return {
     lender: 'Barclays',

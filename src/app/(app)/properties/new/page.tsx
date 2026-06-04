@@ -7,6 +7,7 @@ import { Card, CardBody } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input, Label, Select } from '@/components/ui/input'
 import { PropertyPhotoUploader } from '@/components/property-photo-uploader'
+import { AddressFields } from '@/components/address-fields'
 
 export default function NewPropertyPage() {
   async function createProperty(formData: FormData) {
@@ -56,30 +57,8 @@ export default function NewPropertyPage() {
                 <Input id="nickname" name="nickname" required placeholder="e.g. 42 Oak Avenue" />
               </div>
 
-              <div className="sm:col-span-2">
-                <Label htmlFor="address_line_1">Address line 1 *</Label>
-                <Input id="address_line_1" name="address_line_1" required placeholder="Start typing an address..." />
-              </div>
-              <div className="sm:col-span-2">
-                <Label htmlFor="address_line_2">Address line 2</Label>
-                <Input id="address_line_2" name="address_line_2" placeholder="Apartment, suite, etc." />
-              </div>
-              <div>
-                <Label htmlFor="city">City *</Label>
-                <Input id="city" name="city" required placeholder="London" />
-              </div>
-              <div>
-                <Label htmlFor="postcode">Postcode *</Label>
-                <Input id="postcode" name="postcode" required placeholder="SW1A 1AA" />
-              </div>
-              <div className="sm:col-span-2">
-                <Label htmlFor="country">Country</Label>
-                <Select id="country" name="country" defaultValue="United Kingdom">
-                  <option value="United Kingdom">United Kingdom</option>
-                  <option value="Ireland">Ireland</option>
-                  <option value="Other">Other</option>
-                </Select>
-              </div>
+              <AddressFields />
+
 
               <div className="sm:col-span-2">
                 <Label>Property type</Label>
