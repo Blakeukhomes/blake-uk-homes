@@ -1,12 +1,11 @@
-import Link from 'next/link'
-import { FileText, Plus, Sparkles } from 'lucide-react'
+import { FileText, Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { PageHeader } from '@/components/app-shell'
 import { Card, CardBody } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { TicketTabs } from '@/components/ticket-tabs'
 import { PropertyFilterSelect } from '@/components/property-filter-select'
+import { UploadDocumentLauncher } from '@/components/upload-document-launcher'
 import type { DocumentRow, Property } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
@@ -87,11 +86,7 @@ export default async function DocumentsPage({
       <PageHeader
         title="Global documents"
         subtitle="Search and manage all documents across your portfolio."
-        actions={
-          <Link href="/properties">
-            <Button variant="secondary"><Plus className="h-4 w-4" />Upload document</Button>
-          </Link>
-        }
+        actions={<UploadDocumentLauncher properties={props} />}
       />
 
       <div className="p-6 space-y-6">
