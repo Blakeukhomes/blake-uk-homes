@@ -12,13 +12,13 @@ For tenancy agreements, return:
   Tenancy type, start date, end / break date, parties, monthly rent, due day,
   deposit amount + scheme, notice period, pets / smoking clauses, key obligations.
 
-For compliance certificates (Gas Safety, EICR, EPC, Buildings Insurance), return:
+For compliance certificates (Gas Safety, EICR, EPC, Buildings Insurance, Legionella), return:
   Issued by, issue date, expiry date, reference number, any defects / observations,
   insurance policy number and cover limits where applicable.
 
 For invoices, return: supplier, total, VAT, work performed, dates.
 
-Write 5–10 short lines, plain prose, no markdown headings.
+Write 5 to 10 short lines, plain prose, no markdown headings.
 If the document is unreadable or empty, say so plainly.`
 
 export async function POST(req: Request) {
@@ -33,16 +33,18 @@ export async function POST(req: Request) {
     const { data: doc } = await supabase.from('documents').select('*').eq('id', document_id).single()
     if (!doc) return new NextResponse('Document not found', { status: 404 })
 
-    // Pull the file from storage (service client; bucket is private)
     const sb = createServiceClient()
     const { data: blob, error: dlErr } = await sb.storage.from('property-documents').download(doc.storage_path)
     if (dlErr || !blob) return new NextResponse(dlErr?.message ?? 'Download failed', { status: 500 })
     const bytes = Buffer.from(await blob.arrayBuffer())
 
+    const isPdf = doc.mime_type === 'application/pdf' || doc.storage_path.toLowerCase().endsWith('.pdf')
+
+    // Try cheap text extraction for PDFs first
     let extractedText = ''
-    if (doc.mime_type === 'application/pdf' || doc.storage_path.toLowerCase().endsWith('.pdf')) {
-      const pdfParse = (await import('pdf-parse')).default
+    if (isPdf) {
       try {
+        const pdfParse = (await import('pdf-parse')).default
         const parsed = await pdfParse(bytes)
         extractedText = (parsed.text || '').trim()
       } catch {
@@ -52,16 +54,27 @@ export async function POST(req: Request) {
       extractedText = bytes.toString('utf8')
     }
 
-    // Build the Claude message. If we have text, send text. Otherwise send the file as an image (Claude vision) for images.
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return new NextResponse('ANTHROPIC_API_KEY is not set on the server', { status: 500 })
+    }
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
     const model = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6'
 
     const messageContent: any[] = []
-    if (extractedText) {
+
+    if (extractedText && extractedText.length > 50) {
+      // Cheap path: send extracted text
       messageContent.push({
         type: 'text',
         text: `Document title: ${doc.title}\nDocument kind: ${doc.kind}\n\n--- DOCUMENT TEXT ---\n${extractedText.slice(0, 60_000)}`,
       })
+    } else if (isPdf) {
+      // Fall back to sending the PDF directly to Claude (native OCR, handles scanned PDFs)
+      messageContent.push({
+        type: 'document',
+        source: { type: 'base64', media_type: 'application/pdf', data: bytes.toString('base64') },
+      })
+      messageContent.push({ type: 'text', text: `Document title: ${doc.title}\nDocument kind: ${doc.kind}` })
     } else if (doc.mime_type?.startsWith('image/')) {
       messageContent.push({
         type: 'image',

@@ -172,7 +172,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'document_id and a valid kind are required' }, { status: 400 })
     }
 
-    // In demo mode, return mocked structured data so the UI behaviour can be demonstrated
     if (isDemoMode()) {
       return NextResponse.json({ fields: demoFields(kind) })
     }
@@ -186,9 +185,11 @@ export async function POST(req: Request) {
     if (dlErr || !blob) return NextResponse.json({ error: dlErr?.message ?? 'download failed' }, { status: 500 })
     const bytes = Buffer.from(await blob.arrayBuffer())
 
-    // Extract document text (best effort)
+    const isPdf = doc.mime_type === 'application/pdf' || doc.storage_path.toLowerCase().endsWith('.pdf')
+
+    // Try cheap text extraction for PDFs first
     let text = ''
-    if (doc.mime_type === 'application/pdf' || doc.storage_path.toLowerCase().endsWith('.pdf')) {
+    if (isPdf) {
       try {
         const pdfParse = (await import('pdf-parse')).default
         const parsed = await pdfParse(bytes)
@@ -206,8 +207,15 @@ export async function POST(req: Request) {
 
     const schema = SCHEMAS[kind]
     const userContent: any[] = []
-    if (text) {
+    if (text && text.length > 50) {
+      // Cheap path: send extracted text
       userContent.push({ type: 'text', text: `Document text:\n\n${text.slice(0, 60_000)}` })
+    } else if (isPdf) {
+      // Fall back to sending the PDF directly (Claude does native OCR on scanned PDFs)
+      userContent.push({
+        type: 'document',
+        source: { type: 'base64', media_type: 'application/pdf', data: bytes.toString('base64') },
+      })
     } else if (doc.mime_type?.startsWith('image/')) {
       userContent.push({ type: 'image', source: { type: 'base64', media_type: doc.mime_type, data: bytes.toString('base64') } })
     } else {
