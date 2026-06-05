@@ -10,11 +10,16 @@ export interface AddressSelection {
   country: string
 }
 
-type Suggestion = { id: string; address: string }
+type Suggestion = {
+  id: string
+  address: string
+  main?: string
+  secondary?: string
+}
 
 export function AddressAutocomplete({
   onSelect,
-  placeholder = 'Start typing a postcode or address...',
+  placeholder = 'Start typing an address or postcode...',
 }: {
   onSelect: (addr: AddressSelection) => void
   placeholder?: string
@@ -49,7 +54,7 @@ export function AddressAutocomplete({
     debounceRef.current = setTimeout(async () => {
       setBusy(true); setError(null)
       try {
-        const r = await fetch(`/api/getaddress/autocomplete?q=${encodeURIComponent(q.trim())}`)
+        const r = await fetch(`/api/places/autocomplete?q=${encodeURIComponent(q.trim())}`)
         const data = await r.json()
         if (!r.ok) throw new Error(data?.error || 'Lookup failed')
         setSuggestions(data.suggestions ?? [])
@@ -66,7 +71,7 @@ export function AddressAutocomplete({
   async function pick(s: Suggestion) {
     setOpen(false); setQ(s.address); setPicking(true); setError(null)
     try {
-      const r = await fetch(`/api/getaddress/get/${encodeURIComponent(s.id)}`)
+      const r = await fetch(`/api/places/details/${encodeURIComponent(s.id)}`)
       const data = await r.json()
       if (!r.ok) throw new Error(data?.error || 'Could not fetch address')
       onSelect({
@@ -112,7 +117,16 @@ export function AddressAutocomplete({
                 className="flex w-full items-start gap-2 px-3 py-2 text-left text-ink-700 hover:bg-accent-50 hover:text-accent-900"
               >
                 <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-400" />
-                <span className="leading-tight">{s.address}</span>
+                <span className="leading-tight">
+                  {s.main ? (
+                    <>
+                      <span className="font-medium">{s.main}</span>
+                      {s.secondary && <span className="text-ink-500">, {s.secondary}</span>}
+                    </>
+                  ) : (
+                    s.address
+                  )}
+                </span>
               </button>
             </li>
           ))}
@@ -122,7 +136,7 @@ export function AddressAutocomplete({
       {error && (
         <p className="mt-1 text-xs text-danger-600">{error}</p>
       )}
-      <p className="mt-1 text-[11px] text-ink-400">Powered by getaddress.io (Royal Mail PAF)</p>
+      <p className="mt-1 text-[11px] text-ink-400">Powered by Google Places</p>
     </div>
   )
 }
