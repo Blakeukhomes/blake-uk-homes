@@ -4,6 +4,7 @@ import { Card, CardBody, CardHeader, CardTitle, CardDescription } from '@/compon
 import { Badge } from '@/components/ui/badge'
 import type { DocumentRow } from '@/lib/types'
 import { DocumentUploader } from '@/components/document-uploader'
+import { DeleteDocumentButton } from '@/components/delete-document-button'
 
 export const dynamic = 'force-dynamic'
 
@@ -51,9 +52,12 @@ export default async function PropertyDocumentsPage({ params }: { params: { id: 
                           </div>
                         )}
                       </div>
-                      <Badge tone={d.visible_to_tenant ? 'info' : 'neutral'}>
-                        {d.visible_to_tenant ? 'Visible to tenant' : 'Private'}
-                      </Badge>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <Badge tone={d.visible_to_tenant ? 'info' : 'neutral'}>
+                          {d.visible_to_tenant ? 'Visible to tenant' : 'Private'}
+                        </Badge>
+                        <DeleteDocumentButton documentId={d.id} title={d.title} />
+                      </div>
                     </div>
                   </li>
                 ))}

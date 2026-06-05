@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { TicketTabs } from '@/components/ticket-tabs'
 import { PropertyFilterSelect } from '@/components/property-filter-select'
 import { UploadDocumentLauncher } from '@/components/upload-document-launcher'
+import { DeleteDocumentButton } from '@/components/delete-document-button'
 import type { DocumentRow, Property } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
@@ -22,13 +23,12 @@ const TABS: { value: string; label: string }[] = [
   { value: 'other',         label: 'Other' },
 ]
 
-// Map sidebar tab value to the document_kind values that belong in it.
 const TAB_KINDS: Record<string, string[]> = {
   all:          [],
   leases:       ['tenancy_agreement'],
   invoices:     ['invoice'],
   receipts:     ['invoice'],
-  certificates: ['gas_safety', 'eicr', 'epc', 'buildings_insurance'],
+  certificates: ['gas_safety', 'eicr', 'epc', 'buildings_insurance', 'legionella'],
   ids:          [],
   contracts:    ['tenancy_agreement'],
   e_signatures: [],
@@ -36,7 +36,7 @@ const TAB_KINDS: Record<string, string[]> = {
 }
 
 function badgeTone(kind: string): 'success' | 'warning' | 'info' | 'danger' | 'neutral' | 'accent' {
-  if (['gas_safety', 'eicr', 'epc', 'buildings_insurance'].includes(kind)) return 'danger'
+  if (['gas_safety', 'eicr', 'epc', 'buildings_insurance', 'legionella'].includes(kind)) return 'danger'
   if (kind === 'tenancy_agreement') return 'info'
   if (kind === 'invoice') return 'accent'
   return 'neutral'
@@ -44,7 +44,8 @@ function badgeTone(kind: string): 'success' | 'warning' | 'info' | 'danger' | 'n
 
 function categoryLabel(kind: string): string {
   const map: Record<string, string> = {
-    gas_safety: 'Certificate', eicr: 'Certificate', epc: 'Certificate', buildings_insurance: 'Certificate',
+    gas_safety: 'Certificate', eicr: 'Certificate', epc: 'Certificate',
+    buildings_insurance: 'Certificate', legionella: 'Certificate',
     tenancy_agreement: 'Lease',
     invoice: 'Invoice',
     deposit_certificate: 'Other',
@@ -117,7 +118,10 @@ export default async function DocumentsPage({
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-100 text-accent-700">
                       <FileText className="h-5 w-5" />
                     </div>
-                    <Badge tone={badgeTone(d.kind)}>{categoryLabel(d.kind)}</Badge>
+                    <div className="flex items-center gap-1">
+                      <Badge tone={badgeTone(d.kind)}>{categoryLabel(d.kind)}</Badge>
+                      <DeleteDocumentButton documentId={d.id} title={d.title} />
+                    </div>
                   </div>
                   <p className="mt-3 truncate text-sm font-bold text-ink-900">{d.title}</p>
                   <p className="text-xs text-ink-500">
