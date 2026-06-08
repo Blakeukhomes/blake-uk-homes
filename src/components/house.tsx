@@ -1,10 +1,5 @@
-// Illustrative house components — geometry copied verbatim from the
-// developer brief prototypes (street-view-final.html + tenant-portal-html.html).
-// Three exports:
-//   <House />        82x88 street view house with traffic light
-//   <WelcomeHouse /> 200x185 welcome version with sign post + chimney smoke
-//   <HomeHouse />    200x185 "lights on" version with bulbs + brown door + yellow doorbell
-// HeroHouse aliased to WelcomeHouse for backwards compatibility.
+// Illustrative house components — geometry copied from the developer brief prototypes
+// with the street sign updated: black background, wider, name fits inside.
 import { cn } from '@/lib/cn'
 
 export type HouseStatus = 'tenanted' | 'vacant' | 'legal_proceedings'
@@ -58,10 +53,24 @@ export function House({
   )
 }
 
-/** Large welcome-screen house (200x185). Sign post + traffic light + chimney with smoke. */
+// Helper: pick a font size based on string length so the name always fits the sign
+function signFontSize(name: string): number {
+  const len = name.length
+  if (len <= 8)  return 10
+  if (len <= 12) return 8
+  if (len <= 16) return 7
+  return 6
+}
+function signLabel(name: string): string {
+  return (name ?? 'Street').slice(0, 18).toUpperCase()
+}
+
+/** Large welcome-screen house (230x185, viewBox extended left for the sign). */
 export function WelcomeHouse({ streetName, className }: { streetName?: string; className?: string }) {
+  const label = signLabel(streetName ?? 'Street')
+  const fontSize = signFontSize(label)
   return (
-    <svg width="200" height="185" viewBox="0 0 200 185" xmlns="http://www.w3.org/2000/svg" className={cn('block', className)} aria-hidden>
+    <svg viewBox="-30 0 230 185" xmlns="http://www.w3.org/2000/svg" className={cn('block', className)} aria-hidden>
       {/* chimney with smoke puffs */}
       <rect x="118" y="14" width="16" height="32" rx="2" fill="#7a5c3e" opacity="0.9" />
       <rect x="116" y="12" width="20" height="6" rx="1" fill="#6b4f33" />
@@ -92,12 +101,15 @@ export function WelcomeHouse({ streetName, className }: { streetName?: string; c
       <line x1="138" y1="86" x2="178" y2="86" stroke="#94a3b8" strokeWidth="1" opacity="0.5" />
       {/* ground shadow strip */}
       <rect x="14" y="177" width="172" height="8" rx="3" fill="#92400e" opacity="0.3" />
-      {/* sign post + street sign */}
-      <rect x="8" y="62" width="3" height="50" rx="1" fill="#6b7280" />
-      <rect x="0" y="60" width="34" height="14" rx="3" fill="#1e40af" />
-      <text x="17" y="71" textAnchor="middle" fontSize="8" fontWeight="700" fill="white">
-        {(streetName ?? 'Street').slice(0, 14)}
+
+      {/* sign post + street sign (UK-style black sign extending left of the house) */}
+      <rect x="8" y="70" width="3" height="42" rx="1" fill="#6b7280" />
+      <rect x="-28" y="58" width="68" height="18" rx="3" fill="#0f172a" />
+      <rect x="-26" y="60" width="64" height="14" rx="2" fill="none" stroke="#ffffff" strokeOpacity="0.18" strokeWidth="0.5" />
+      <text x="6" y="71" textAnchor="middle" fontSize={fontSize} fontWeight="700" fill="#ffffff" letterSpacing="0.5">
+        {label}
       </text>
+
       {/* traffic light (green) */}
       <rect x="188" y="62" width="3" height="50" rx="1" fill="#6b7280" />
       <rect x="182" y="58" width="18" height="56" rx="3" fill="#1e293b" />
@@ -108,10 +120,12 @@ export function WelcomeHouse({ streetName, className }: { streetName?: string; c
   )
 }
 
-/** Same 200x185 dimensions but with "lights on" — yellow window panes, bulb emojis, brown door, yellow doorbell. */
+/** Same look but with "lights on" — yellow window panes, bulb emojis, brown door, yellow doorbell. */
 export function HomeHouse({ streetName, className }: { streetName?: string; className?: string }) {
+  const label = signLabel(streetName ?? 'Street')
+  const fontSize = signFontSize(label)
   return (
-    <svg width="200" height="185" viewBox="0 0 200 185" xmlns="http://www.w3.org/2000/svg" className={cn('block', className)} aria-hidden>
+    <svg viewBox="-30 0 230 185" xmlns="http://www.w3.org/2000/svg" className={cn('block', className)} aria-hidden>
       <rect x="118" y="14" width="16" height="32" rx="2" fill="#7a5c3e" opacity="0.9" />
       <polygon points="100,6 190,62 10,62" fill="#7a5c3e" />
       <rect x="14" y="61" width="172" height="120" rx="3" fill="#c4a882" />
@@ -134,12 +148,15 @@ export function HomeHouse({ streetName, className }: { streetName?: string; clas
       <line x1="158" y1="72" x2="158" y2="100" stroke="#94a3b8" strokeWidth="1" opacity="0.4" />
       <line x1="138" y1="86" x2="178" y2="86" stroke="#94a3b8" strokeWidth="1" opacity="0.4" />
       <text x="158" y="91" textAnchor="middle" fontSize="14">💡</text>
+
       {/* sign post + street sign */}
-      <rect x="8" y="62" width="3" height="50" rx="1" fill="#6b7280" />
-      <rect x="0" y="60" width="34" height="14" rx="3" fill="#1e40af" />
-      <text x="17" y="71" textAnchor="middle" fontSize="8" fontWeight="700" fill="white">
-        {(streetName ?? 'Street').slice(0, 14)}
+      <rect x="8" y="70" width="3" height="42" rx="1" fill="#6b7280" />
+      <rect x="-28" y="58" width="68" height="18" rx="3" fill="#0f172a" />
+      <rect x="-26" y="60" width="64" height="14" rx="2" fill="none" stroke="#ffffff" strokeOpacity="0.18" strokeWidth="0.5" />
+      <text x="6" y="71" textAnchor="middle" fontSize={fontSize} fontWeight="700" fill="#ffffff" letterSpacing="0.5">
+        {label}
       </text>
+
       {/* traffic light (green) */}
       <rect x="188" y="62" width="3" height="50" rx="1" fill="#6b7280" />
       <rect x="182" y="58" width="18" height="56" rx="3" fill="#1e293b" />
@@ -153,7 +170,6 @@ export function HomeHouse({ streetName, className }: { streetName?: string; clas
 /** Backwards-compatible alias used by the marketing landing copy. */
 export const HeroHouse = WelcomeHouse
 
-// StreetRow remains the same external API but uses the new exact House SVG.
 import Link from 'next/link'
 
 export function StreetRow({

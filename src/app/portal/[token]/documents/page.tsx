@@ -1,8 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, FileText, Shield, Flame, Leaf, Zap, BookOpen, Key } from 'lucide-react'
+import { ArrowLeft, FileText, Shield, Flame, Leaf, Zap, BookOpen, Key, Droplet } from 'lucide-react'
 import { createServiceClient } from '@/lib/supabase/server'
-import { Logo } from '@/components/logo'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,6 +12,7 @@ const KIND_LABEL: Record<string, { label: string; Icon: any; color: string }> = 
   gas_safety:           { label: 'Gas Safety',           Icon: Flame,    color: 'text-danger-500' },
   epc:                  { label: 'EPC Certificate',      Icon: Leaf,     color: 'text-success-500' },
   eicr:                 { label: 'EICR',                 Icon: Zap,      color: 'text-warning-500' },
+  legionella:           { label: 'Legionella',           Icon: Droplet,  color: 'text-accent-500' },
   buildings_insurance:  { label: 'Buildings Insurance',  Icon: Shield,   color: 'text-accent-500' },
   inventory_move_in:    { label: 'Move-in Inventory',    Icon: FileText, color: 'text-accent-500' },
   inventory_move_out:   { label: 'Move-out Inventory',   Icon: FileText, color: 'text-accent-500' },
@@ -58,6 +58,7 @@ export default async function TenantDocsPage({ params }: { params: { token: stri
             {(docs as any[]).map((d) => {
               const meta = KIND_LABEL[d.kind] ?? KIND_LABEL.other
               const Icon = meta.Icon
+              const href = `/api/portal/${params.token}/documents/${d.id}`
               return (
                 <li key={d.id} className="flex items-center justify-between rounded-xl bg-white p-4 ring-1 ring-ink-100">
                   <div className="flex items-center gap-3">
@@ -69,12 +70,19 @@ export default async function TenantDocsPage({ params }: { params: { token: stri
                       </p>
                     </div>
                   </div>
-                  <button className="rounded-lg bg-accent-500 px-4 py-1.5 text-xs font-bold text-white">View</button>
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-lg bg-accent-500 px-4 py-1.5 text-xs font-bold text-white hover:bg-accent-600"
+                  >
+                    View
+                  </a>
                 </li>
               )
             })}
             <li className="mt-4 rounded-xl border border-success-500/30 bg-success-50 p-3 text-center text-xs text-success-700">
-              ✓ All required documents are in order
+              All required documents are in order
             </li>
           </ul>
         )}

@@ -8,10 +8,11 @@ export const revalidate = 0
 export default async function TenantPortalRoute({ params }: { params: { token: string } }) {
   const sb = createServiceClient()
   const { data: tenant } = await sb.from('tenants')
-    .select('id, full_name, portal_token, property_id, properties(nickname, address_line_1, city, postcode)')
+    .select('id, full_name, portal_token, property_id, is_active, properties(nickname, address_line_1, city, postcode)')
     .eq('portal_token', params.token).maybeSingle()
   if (!tenant) notFound()
   const t = tenant as any
+  if (!t.is_active) notFound()
 
   const [{ data: docs = [] }, { data: faults = [] }, { data: bookings = [] }] = await Promise.all([
     sb.from('documents')
@@ -54,6 +55,8 @@ export default async function TenantPortalRoute({ params }: { params: { token: s
 
   return (
     <TenantPortal
+      tenantId={t.id}
+      portalToken={t.portal_token}
       firstName={firstName}
       streetName={streetName}
       fullAddress={fullAddress}

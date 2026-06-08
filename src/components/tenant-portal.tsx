@@ -23,6 +23,7 @@ const DOC_ICONS: Record<string, string> = {
   gas_safety:          '🔥',
   epc:                 '🌿',
   eicr:                '⚡',
+  legionella:          '💧',
   buildings_insurance: '🛡️',
   inventory_move_in:   '📋',
   inventory_move_out:  '📋',
@@ -36,6 +37,7 @@ const DOC_LABEL: Record<string, string> = {
   gas_safety:          'Gas Safety Certificate',
   epc:                 'EPC Certificate',
   eicr:                'EICR',
+  legionella:          'Legionella Assessment',
   buildings_insurance: 'Buildings Insurance',
   inventory_move_in:   'Move-in Inventory',
   inventory_move_out:  'Move-out Inventory',
@@ -44,6 +46,8 @@ const DOC_LABEL: Record<string, string> = {
 }
 
 export interface TenantPortalProps {
+  tenantId: string
+  portalToken: string
   firstName: string
   streetName: string
   fullAddress: string
@@ -57,30 +61,61 @@ export interface TenantPortalProps {
   } | null
 }
 
-export function TenantPortal({ firstName, streetName, fullAddress, documents, activeFault }: TenantPortalProps) {
+export function TenantPortal({
+  tenantId, portalToken, firstName, streetName, fullAddress, documents, activeFault,
+}: TenantPortalProps) {
   const [screen, setScreen] = useState<Screen>('welcome')
   const [reportStep, setReportStep] = useState<1 | 2 | 3>(1)
   const [category, setCategory] = useState('')
   const [description, setDescription] = useState('')
   const [files, setFiles] = useState<FileList | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [confirm, setConfirm] = useState<{ ref: string; date: string } | null>(null)
 
-  function resetReport() { setReportStep(1); setCategory(''); setDescription(''); setFiles(null) }
+  function resetReport() {
+    setReportStep(1); setCategory(''); setDescription(''); setFiles(null)
+    setSubmitError(null); setSubmitting(false)
+  }
 
-  function submitFault() {
-    const ref = 'BUH-' + Math.floor(10000 + Math.random() * 90000)
-    const date = new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-    setConfirm({ ref, date })
-    setScreen('confirm')
+  async function submitFault() {
+    if (!files || files.length === 0) return
+    setSubmitting(true); setSubmitError(null)
+    try {
+      const fd = new FormData()
+      fd.set('token', portalToken)
+      fd.set('tenant_id', tenantId)
+      fd.set('category', category)
+      fd.set('description', description)
+      fd.set('severity', 'normal')
+      fd.set('reporter_name', firstName)
+      for (const f of Array.from(files)) fd.append('media', f)
+
+      const res = await fetch('/api/portal/fault', { method: 'POST', body: fd })
+      if (!res.ok) {
+        const txt = await res.text().catch(() => 'Submission failed')
+        throw new Error(txt || `Submission failed (${res.status})`)
+      }
+      const { reference, reported_at } = await res.json() as { reference: string; reported_at: string }
+      const date = new Date(reported_at).toLocaleString('en-GB', {
+        day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+      })
+      setConfirm({ ref: reference, date })
+      setScreen('confirm')
+    } catch (e: any) {
+      setSubmitError(e?.message ?? 'Submission failed')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-[420px] bg-ink-50">
+    <div className="mx-auto min-h-screen w-full max-w-[440px] bg-ink-50 sm:max-w-[460px] md:max-w-[520px] lg:max-w-[560px]">
       {screen === 'welcome' && (
         <section className="flex min-h-screen flex-col items-center justify-center px-6 py-10 text-center">
           <p className="mb-2.5 text-[10px] font-bold tracking-[0.2em] text-ink-400">BLAKE UK HOMES</p>
-          <WelcomeHouse streetName={streetName} />
-          <h1 className="text-[26px] font-extrabold leading-none text-ink-900">Welcome home,</h1>
+          <WelcomeHouse streetName={streetName} className="h-auto w-full max-w-[280px]" />
+          <h1 className="mt-2 text-[26px] font-extrabold leading-none text-ink-900">Welcome home,</h1>
           <p className="mt-1 text-[24px] font-extrabold text-accent-500">{firstName}</p>
           <p className="mb-8 mt-1.5 text-sm text-ink-500">{fullAddress}</p>
           <button
@@ -103,9 +138,9 @@ export function TenantPortal({ firstName, streetName, fullAddress, documents, ac
             <p className="mt-0.5 text-xs text-ink-500">{fullAddress}</p>
           </header>
           <div className="flex justify-center px-5 pt-5">
-            <HomeHouse streetName={streetName} className="h-[150px] w-[160px]" />
+            <HomeHouse streetName={streetName} className="h-auto w-full max-w-[260px]" />
           </div>
-          <div className="px-5 pt-4">
+          <div className="px-5 pt-4 pb-8">
             {activeFault && (
               <div className="mb-4 rounded-xl border-[1.5px] px-3.5 py-3.5" style={{ background: '#fffbeb', borderColor: '#fde68a' }}>
                 <p className="text-xs font-bold text-[#92400e]">🔧 Active Repair</p>
@@ -141,7 +176,7 @@ export function TenantPortal({ firstName, streetName, fullAddress, documents, ac
       {screen === 'docs' && (
         <section>
           <BackHeader title="My Documents" sub={fullAddress} onBack={() => setScreen('home')} />
-          <div className="p-4">
+          <div className="p-4 pb-8">
             <p className="mb-3 text-[11px] font-bold tracking-wide text-ink-400">YOUR TENANCY DOCUMENTS</p>
             {documents.length === 0 ? (
               <p className="rounded-xl bg-white p-5 text-center text-sm text-ink-500 ring-1 ring-ink-100">No documents shared with you yet.</p>
@@ -149,21 +184,28 @@ export function TenantPortal({ firstName, streetName, fullAddress, documents, ac
               <>
                 {documents.map((d) => (
                   <div key={d.id} className="mb-2.5 flex items-center justify-between rounded-xl border-[1.5px] border-ink-50 bg-white px-3.5 py-3.5">
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
                       <span className="text-[22px]">{DOC_ICONS[d.kind] ?? '📄'}</span>
-                      <div>
-                        <p className="text-[13px] font-bold text-ink-900">{DOC_LABEL[d.kind] ?? d.title}</p>
+                      <div className="min-w-0">
+                        <p className="truncate text-[13px] font-bold text-ink-900">{DOC_LABEL[d.kind] ?? d.title}</p>
                         <p className="mt-0.5 text-[11px] text-ink-400">
                           Added {new Date(d.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </p>
                       </div>
                     </div>
-                    <button className="rounded-lg bg-accent-500 px-3.5 py-1.5 text-[11px] font-bold text-white">View</button>
+                    <a
+                      href={`/api/portal/${portalToken}/documents/${d.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 rounded-lg bg-accent-500 px-3.5 py-1.5 text-[11px] font-bold text-white hover:bg-accent-600"
+                    >
+                      View
+                    </a>
                   </div>
                 ))}
                 <div className="mt-2 rounded-xl border bg-success-50 px-3 py-3 text-center text-xs text-success-700"
                      style={{ borderColor: '#bbf7d0' }}>
-                  ✓ All required documents are in order
+                  All required documents are in order
                 </div>
               </>
             )}
@@ -174,10 +216,10 @@ export function TenantPortal({ firstName, streetName, fullAddress, documents, ac
       {screen === 'faults' && (
         <section>
           <BackHeader title="Repairs & Faults" sub={fullAddress} onBack={() => setScreen('home')} />
-          <div className="p-4">
+          <div className="p-4 pb-8">
             <button
               onClick={() => { resetReport(); setScreen('report') }}
-              className="mb-5 w-full rounded-xl bg-accent-500 px-3 py-3.5 text-sm font-bold text-white"
+              className="mb-5 w-full rounded-xl bg-accent-500 px-3 py-3.5 text-sm font-bold text-white hover:bg-accent-600"
             >
               + Report a New Fault
             </button>
@@ -223,7 +265,7 @@ export function TenantPortal({ firstName, streetName, fullAddress, documents, ac
             </div>
           </header>
 
-          <div className="p-5">
+          <div className="p-5 pb-8">
             {reportStep === 1 && (
               <>
                 <p className="mb-1 text-base font-extrabold text-ink-900">What's the issue?</p>
@@ -266,8 +308,8 @@ export function TenantPortal({ firstName, streetName, fullAddress, documents, ac
                     className={cn(
                       'flex-[2] rounded-[10px] px-3 py-3.5 text-sm font-bold',
                       description.length >= 10
-                        ? 'bg-accent-500 text-white'
-                        : 'bg-ink-200 text-ink-400 cursor-not-allowed'
+                        ? 'bg-accent-500 text-white hover:bg-accent-600'
+                        : 'cursor-not-allowed bg-ink-200 text-ink-400'
                     )}
                   >
                     Continue
@@ -282,7 +324,7 @@ export function TenantPortal({ firstName, streetName, fullAddress, documents, ac
                 <p className="mb-4 text-[13px] text-ink-500">
                   At least one photo or video is <strong className="text-danger-500">required</strong>
                 </p>
-                <label className="mb-4 mt-2 block cursor-pointer rounded-xl border-2 border-dashed border-ink-300 px-4 py-8 text-center">
+                <label className="mb-4 mt-2 block cursor-pointer rounded-xl border-2 border-dashed border-ink-300 px-4 py-8 text-center hover:border-accent-500">
                   <input
                     type="file"
                     accept="image/*,video/*"
@@ -302,19 +344,30 @@ export function TenantPortal({ firstName, streetName, fullAddress, documents, ac
                   <p className="text-[13px] text-ink-700"><strong>{streetName}</strong> · {category}</p>
                   <p className="mt-0.5 text-xs text-ink-500">{description.slice(0, 70)}{description.length > 70 ? '...' : ''}</p>
                 </div>
+
+                {submitError && (
+                  <div className="mb-3 rounded-lg border border-danger-500/30 bg-danger-50 px-3 py-2 text-xs text-danger-700">
+                    {submitError}
+                  </div>
+                )}
+
                 <div className="flex gap-2.5">
-                  <button onClick={() => setReportStep(2)} className="flex-1 rounded-[10px] bg-ink-100 px-3 py-3.5 text-sm font-semibold text-ink-500">Back</button>
+                  <button
+                    onClick={() => setReportStep(2)}
+                    disabled={submitting}
+                    className="flex-1 rounded-[10px] bg-ink-100 px-3 py-3.5 text-sm font-semibold text-ink-500 disabled:opacity-50"
+                  >Back</button>
                   <button
                     onClick={submitFault}
-                    disabled={!files || files.length === 0}
+                    disabled={!files || files.length === 0 || submitting}
                     className={cn(
-                      'flex-[2] rounded-[10px] px-3 py-3.5 text-sm font-bold',
-                      files && files.length > 0
-                        ? 'bg-accent-500 text-white'
-                        : 'bg-ink-200 text-ink-400 cursor-not-allowed'
+                      'flex-[2] rounded-[10px] px-3 py-3.5 text-sm font-bold transition-colors',
+                      files && files.length > 0 && !submitting
+                        ? 'bg-accent-500 text-white hover:bg-accent-600'
+                        : 'cursor-not-allowed bg-ink-200 text-ink-400'
                     )}
                   >
-                    Submit Report
+                    {submitting ? 'Submitting...' : 'Submit Report'}
                   </button>
                 </div>
               </>
@@ -338,7 +391,7 @@ export function TenantPortal({ firstName, streetName, fullAddress, documents, ac
           </div>
           <button
             onClick={() => { resetReport(); setScreen('home') }}
-            className="w-full rounded-xl bg-accent-500 px-4 py-3.5 text-sm font-bold text-white"
+            className="w-full rounded-xl bg-accent-500 px-4 py-3.5 text-sm font-bold text-white hover:bg-accent-600"
           >
             Back to My Home
           </button>
