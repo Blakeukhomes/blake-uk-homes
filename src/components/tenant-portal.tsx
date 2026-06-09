@@ -16,6 +16,21 @@ const CATEGORIES = [
   { label: 'Other',        icon: '📋' },
 ]
 
+const SEVERITY_OPTIONS: Array<{
+  value: 'emergency' | 'urgent' | 'standard' | 'minor'
+  label: string; icon: string; hint: string;
+  activeBg: string; activeBorder: string; activeText: string
+}> = [
+  { value: 'emergency', label: 'Emergency', icon: '🚨', hint: 'Danger to life, fire, gas, flood, no heat in winter',
+    activeBg: 'bg-danger-50',  activeBorder: 'border-danger-500',  activeText: 'text-danger-700' },
+  { value: 'urgent',    label: 'Urgent',    icon: '⚠️', hint: 'Boiler down, no hot water, electrical fault',
+    activeBg: 'bg-warning-50', activeBorder: 'border-warning-500', activeText: 'text-[#92400e]' },
+  { value: 'standard',  label: 'Standard',  icon: '🔧', hint: 'Annoying but manageable, e.g. dripping tap',
+    activeBg: 'bg-accent-50',  activeBorder: 'border-accent-500',  activeText: 'text-accent-700' },
+  { value: 'minor',     label: 'Minor',     icon: '🔹', hint: 'Cosmetic, low priority, can wait',
+    activeBg: 'bg-ink-100',    activeBorder: 'border-ink-400',     activeText: 'text-ink-700' },
+]
+
 const DOC_ICONS: Record<string, string> = {
   tenancy_agreement:   '📄',
   deposit_certificate: '🔐',
@@ -61,6 +76,12 @@ export interface TenantPortalProps {
   } | null
 }
 
+function formatBytes(n: number) {
+  if (n < 1024) return `${n} B`
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`
+  return `${(n / 1024 / 1024).toFixed(1)} MB`
+}
+
 export function TenantPortal({
   tenantId, portalToken, firstName, streetName, fullAddress, documents, activeFault,
 }: TenantPortalProps) {
@@ -68,18 +89,28 @@ export function TenantPortal({
   const [reportStep, setReportStep] = useState<1 | 2 | 3>(1)
   const [category, setCategory] = useState('')
   const [description, setDescription] = useState('')
-  const [files, setFiles] = useState<FileList | null>(null)
+  const [severity, setSeverity] = useState<'emergency' | 'urgent' | 'standard' | 'minor'>('standard')
+  const [files, setFiles] = useState<File[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [confirm, setConfirm] = useState<{ ref: string; date: string } | null>(null)
 
   function resetReport() {
-    setReportStep(1); setCategory(''); setDescription(''); setFiles(null)
+    setReportStep(1); setCategory(''); setDescription(''); setFiles([]); setSeverity('standard')
     setSubmitError(null); setSubmitting(false)
   }
 
+  function addFiles(newFiles: FileList | null) {
+    if (!newFiles || newFiles.length === 0) return
+    setFiles((prev) => [...prev, ...Array.from(newFiles)])
+  }
+
+  function removeFile(idx: number) {
+    setFiles((prev) => prev.filter((_, i) => i !== idx))
+  }
+
   async function submitFault() {
-    if (!files || files.length === 0) return
+    if (files.length === 0) return
     setSubmitting(true); setSubmitError(null)
     try {
       const fd = new FormData()
@@ -87,9 +118,9 @@ export function TenantPortal({
       fd.set('tenant_id', tenantId)
       fd.set('category', category)
       fd.set('description', description)
-      fd.set('severity', 'standard')
+      fd.set('severity', severity)
       fd.set('reporter_name', firstName)
-      for (const f of Array.from(files)) fd.append('media', f)
+      for (const f of files) fd.append('media', f)
 
       const res = await fetch('/api/portal/fault', { method: 'POST', body: fd })
       if (!res.ok) {
@@ -300,6 +331,32 @@ export function TenantPortal({
                   placeholder="e.g. The shower has no water. Started this morning."
                   className="min-h-[130px] w-full rounded-[10px] border-[1.5px] border-ink-200 p-3.5 text-sm"
                 />
+
+                <p className="mt-5 mb-2 text-[12px] font-bold uppercase tracking-wide text-ink-500">How serious is it?</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {SEVERITY_OPTIONS.map((s) => {
+                    const active = severity === s.value
+                    return (
+                      <button
+                        key={s.value}
+                        type="button"
+                        onClick={() => setSeverity(s.value)}
+                        className={cn(
+                          'rounded-xl border-[1.5px] px-3 py-2.5 text-left transition-colors',
+                          active ? `${s.activeBorder} ${s.activeBg}` : 'border-ink-200 bg-white hover:border-ink-300'
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className={cn('inline-flex items-center gap-1.5 text-[13px] font-bold', active ? s.activeText : 'text-ink-900')}>
+                            <span className="text-[16px]">{s.icon}</span>{s.label}
+                          </span>
+                        </div>
+                        <p className={cn('mt-0.5 text-[11px] leading-tight', active ? s.activeText : 'text-ink-500')}>{s.hint}</p>
+                      </button>
+                    )
+                  })}
+                </div>
+
                 <div className="mt-4 flex gap-2.5">
                   <button onClick={() => setReportStep(1)} className="flex-1 rounded-[10px] bg-ink-100 px-3 py-3.5 text-sm font-semibold text-ink-500">Back</button>
                   <button
@@ -324,21 +381,76 @@ export function TenantPortal({
                 <p className="mb-4 text-[13px] text-ink-500">
                   At least one photo or video is <strong className="text-danger-500">required</strong>
                 </p>
-                <label className="mb-4 mt-2 block cursor-pointer rounded-xl border-2 border-dashed border-ink-300 px-4 py-8 text-center hover:border-accent-500">
-                  <input
-                    type="file"
-                    accept="image/*,video/*"
-                    capture="environment"
-                    multiple
-                    className="sr-only"
-                    onChange={(e) => setFiles(e.target.files)}
-                  />
-                  <p className="mb-2 text-[36px]">📷</p>
-                  <p className="text-sm font-bold text-accent-500">
-                    {files?.length ? `${files.length} file${files.length === 1 ? '' : 's'} attached` : 'Tap to add photos or videos'}
-                  </p>
-                  <p className="mt-1 text-[11px] text-ink-400">Photos auto-compressed · Videos max 8MB</p>
-                </label>
+
+                <div className="mb-3 grid grid-cols-3 gap-2">
+                  {/* Take photo */}
+                  <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-[1.5px] border-ink-200 bg-white px-2 py-4 text-center hover:border-accent-500">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="sr-only"
+                      onChange={(e) => addFiles(e.target.files)}
+                    />
+                    <span className="text-[26px]">📷</span>
+                    <span className="mt-1 text-[11px] font-bold text-ink-900">Take photo</span>
+                  </label>
+
+                  {/* Record video */}
+                  <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-[1.5px] border-ink-200 bg-white px-2 py-4 text-center hover:border-accent-500">
+                    <input
+                      type="file"
+                      accept="video/*"
+                      capture="environment"
+                      className="sr-only"
+                      onChange={(e) => addFiles(e.target.files)}
+                    />
+                    <span className="text-[26px]">🎥</span>
+                    <span className="mt-1 text-[11px] font-bold text-ink-900">Record video</span>
+                  </label>
+
+                  {/* From gallery */}
+                  <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-[1.5px] border-ink-200 bg-white px-2 py-4 text-center hover:border-accent-500">
+                    <input
+                      type="file"
+                      accept="image/*,video/*"
+                      multiple
+                      className="sr-only"
+                      onChange={(e) => addFiles(e.target.files)}
+                    />
+                    <span className="text-[26px]">🖼️</span>
+                    <span className="mt-1 text-[11px] font-bold text-ink-900">From gallery</span>
+                  </label>
+                </div>
+                <p className="mb-4 text-center text-[11px] text-ink-400">Photos and videos accepted · Add as many as you need</p>
+
+                {/* Attached list */}
+                {files.length > 0 && (
+                  <div className="mb-4 space-y-2">
+                    {files.map((f, idx) => {
+                      const isVideo = (f.type || '').startsWith('video/')
+                      return (
+                        <div key={`${f.name}-${idx}`} className="flex items-center justify-between gap-2 rounded-lg border border-ink-200 bg-white px-3 py-2">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <span className="text-[18px]">{isVideo ? '🎥' : '🖼️'}</span>
+                            <div className="min-w-0">
+                              <p className="truncate text-[12px] font-medium text-ink-900">{f.name}</p>
+                              <p className="text-[10px] text-ink-400">{formatBytes(f.size)}</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeFile(idx)}
+                            className="shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold text-ink-500 hover:bg-danger-50 hover:text-danger-600"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
                 <div className="mb-4 rounded-[10px] border border-ink-200 bg-ink-50 px-3 py-3">
                   <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-ink-500">SUMMARY</p>
                   <p className="text-[13px] text-ink-700"><strong>{streetName}</strong> · {category}</p>
@@ -359,10 +471,10 @@ export function TenantPortal({
                   >Back</button>
                   <button
                     onClick={submitFault}
-                    disabled={!files || files.length === 0 || submitting}
+                    disabled={files.length === 0 || submitting}
                     className={cn(
                       'flex-[2] rounded-[10px] px-3 py-3.5 text-sm font-bold transition-colors',
-                      files && files.length > 0 && !submitting
+                      files.length > 0 && !submitting
                         ? 'bg-accent-500 text-white hover:bg-accent-600'
                         : 'cursor-not-allowed bg-ink-200 text-ink-400'
                     )}
