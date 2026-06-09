@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { sendEmail } from '@/lib/notifications/email'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -97,6 +98,47 @@ export async function POST(req: NextRequest) {
       actor_name: 'Blake UK Homes (auto)',
       note: 'System auto-acknowledgement on receipt.',
     })
+
+    // Email the property owner immediately (best-effort, non-fatal)
+    if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL) {
+      try {
+        const { data: property } = await sb
+          .from('properties')
+          .select('owner_id, nickname, address_line_1, city, postcode')
+          .eq('id', tenant.property_id)
+          .maybeSingle()
+        const { data: owner } = property?.owner_id
+          ? await sb.from('profiles').select('email, full_name').eq('id', property.owner_id).maybeSingle()
+          : { data: null }
+        if (owner?.email) {
+          const sev = (body.severity || 'standard').toUpperCase()
+          const lines = [
+            `${sev} fault reported by ${reporter_name}`,
+            ``,
+            `Property: ${property?.nickname ?? 'Unknown'}`,
+            `Address:  ${property?.address_line_1 ?? ''}, ${property?.city ?? ''} ${property?.postcode ?? ''}`,
+            ``,
+            `Category:    ${body.category || 'Other'}`,
+            `Severity:    ${sev}`,
+            `Description: ${body.description || '(none)'}`,
+            ``,
+            `Photos: ${photos}    Videos: ${videos}`,
+            ``,
+            `Reference: ${fault.reference}`,
+            `Reported:  ${new Date(fault.reported_at).toLocaleString('en-GB')}`,
+            ``,
+            `Reply via Blake UK Homes to schedule a contractor or message the tenant.`,
+          ].join('\n')
+          await sendEmail({
+            to: owner.email,
+            subject: `[${sev}] ${body.category || 'Fault'} reported - ${property?.nickname ?? 'property'}`,
+            text: lines,
+          })
+        }
+      } catch {
+        // Non-fatal: the fault is already recorded
+      }
+    }
 
     return NextResponse.json({
       reference: fault.reference,

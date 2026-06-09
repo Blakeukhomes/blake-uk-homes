@@ -11,6 +11,11 @@ export default async function DashboardPage() {
   const { data: properties = [] } = await supabase.from('properties').select('*').order('nickname')
   const { data: certs = [] } = await supabase.from('compliance_certificates').select('*')
   const { data: tenants = [] } = await supabase.from('tenants').select('*').eq('is_active', true)
+  const { data: faults = [] } = await supabase
+    .from('fault_reports')
+    .select('id, property_id, category, severity, description, reference, current_state, reported_at')
+    .not('current_state', 'in', '(resolved,closed)')
+    .order('reported_at', { ascending: false })
   const { data: { user } } = await supabase.auth.getUser()
   const { data: profile } = user ? await supabase.from('profiles').select('full_name, email').eq('id', user.id).maybeSingle() : { data: null }
 
@@ -37,6 +42,14 @@ export default async function DashboardPage() {
 
     // Legal hearing alert
     if (p.status === 'legal_proceedings') alerts.push('Legal hearing scheduled')
+
+    // Open fault alerts (tenant-reported)
+    const pFaults = (faults as any[]).filter((f) => f.property_id === p.id)
+    for (const f of pFaults) {
+      const tag = f.severity === 'emergency' ? 'EMERGENCY' : f.severity === 'urgent' ? 'URGENT' : ''
+      const summary = (f.description || '').slice(0, 40)
+      alerts.push(`${tag ? tag + ' ' : ''}Fault: ${f.category}${summary ? ' - ' + summary : ''}`)
+    }
 
     const tenant = tens.find((t) => t.property_id === p.id)
     const tenant_label = p.status === 'tenanted'
