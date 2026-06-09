@@ -113,26 +113,63 @@ export function TenantPortal({
     if (files.length === 0) return
     setSubmitting(true); setSubmitError(null)
     try {
-      const fd = new FormData()
-      fd.set('token', portalToken)
-      fd.set('tenant_id', tenantId)
-      fd.set('category', category)
-      fd.set('description', description)
-      fd.set('severity', severity)
-      fd.set('reporter_name', firstName)
-      for (const f of files) fd.append('media', f)
+      // Build attachment metadata (no binary — keeps the API call tiny)
+      const attachments = files.map((f) => ({
+        name: f.name,
+        mime: f.type || 'application/octet-stream',
+        kind: (f.type || '').startsWith('video/') ? 'video' : 'photo',
+      }))
 
-      const res = await fetch('/api/portal/fault', { method: 'POST', body: fd })
+      // 1) Create the fault row + get signed upload URLs back
+      const res = await fetch('/api/portal/fault', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: portalToken,
+          tenant_id: tenantId,
+          category,
+          description,
+          severity,
+          reporter_name: firstName,
+          attachments,
+        }),
+      })
       if (!res.ok) {
         const txt = await res.text().catch(() => 'Submission failed')
         throw new Error(txt || `Submission failed (${res.status})`)
       }
-      const { reference, reported_at } = await res.json() as { reference: string; reported_at: string }
-      const date = new Date(reported_at).toLocaleString('en-GB', {
+      const data = await res.json() as {
+        reference: string
+        reported_at: string
+        uploads: { signedUrl: string; path: string; token: string }[]
+      }
+
+      // 2) Upload each file directly to Supabase Storage (bypasses Vercel's 4.5MB function limit)
+      let uploadFailures = 0
+      await Promise.all(files.map(async (f, i) => {
+        const u = data.uploads[i]
+        if (!u) { uploadFailures++; return }
+        try {
+          const putRes = await fetch(u.signedUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': f.type || 'application/octet-stream' },
+            body: f,
+          })
+          if (!putRes.ok) uploadFailures++
+        } catch {
+          uploadFailures++
+        }
+      }))
+
+      const date = new Date(data.reported_at).toLocaleString('en-GB', {
         day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
       })
-      setConfirm({ ref: reference, date })
+      setConfirm({ ref: data.reference, date })
       setScreen('confirm')
+      if (uploadFailures > 0) {
+        // Fault is recorded; just one or more attachments failed
+        console.warn(`Fault recorded, but ${uploadFailures} file(s) failed to upload.`)
+      }
     } catch (e: any) {
       setSubmitError(e?.message ?? 'Submission failed')
     } finally {
