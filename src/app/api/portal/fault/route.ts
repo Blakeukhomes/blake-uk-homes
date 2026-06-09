@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     // Create fault row. Fall back to tenant info if reporter fields weren't sent.
     const category = String(fd.get('category') ?? 'Other')
     const description = String(fd.get('description') ?? '')
-    const severity = (String(fd.get('severity') ?? 'normal') as any)
+    const severity = (String(fd.get('severity') ?? 'standard') as any)
     const reporter_name  = (fd.get('reporter_name') as string)  || tenant.full_name || 'Tenant'
     const reporter_phone = (fd.get('reporter_phone') as string) || tenant.phone || null
     const reporter_email = (fd.get('reporter_email') as string) || tenant.email || null

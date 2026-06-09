@@ -87,7 +87,7 @@ export function TenantPortal({
       fd.set('tenant_id', tenantId)
       fd.set('category', category)
       fd.set('description', description)
-      fd.set('severity', 'normal')
+      fd.set('severity', 'standard')
       fd.set('reporter_name', firstName)
       for (const f of Array.from(files)) fd.append('media', f)
 
