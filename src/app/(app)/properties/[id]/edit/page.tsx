@@ -16,7 +16,7 @@ export default async function EditPropertyPage({ params }: { params: { id: strin
   const supabase = createClient()
   const { data: property } = await supabase.from('properties').select('*').eq('id', params.id).maybeSingle()
   if (!property) notFound()
-  const p = property as Property & { country?: string; listing_type?: string }
+  const p = property as Property & { country?: string; listing_type?: string; property_income_allowance?: boolean }
 
   async function update(formData: FormData) {
     'use server'
@@ -35,6 +35,7 @@ export default async function EditPropertyPage({ params }: { params: { id: strin
       rent_due_day: Number(formData.get('rent_due_day') ?? 1),
       status: String(formData.get('status') ?? 'vacant') as any,
       notes: (formData.get('notes') as string) || null,
+      property_income_allowance: formData.get('property_income_allowance') === 'on',
     }
     const { error } = await supabase.from('properties').update(payload).eq('id', params.id)
     if (error) throw new Error(error.message)
@@ -126,6 +127,23 @@ export default async function EditPropertyPage({ params }: { params: { id: strin
                   <option value="legal_proceedings">Legal proceedings</option>
                 </Select>
               </div>
+              <div className="sm:col-span-2 rounded-xl border border-warning-500/30 bg-warning-50 p-4">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="property_income_allowance"
+                    defaultChecked={p.property_income_allowance ?? false}
+                    className="mt-1 h-4 w-4 rounded border-ink-300"
+                  />
+                  <span className="text-sm">
+                    <span className="block font-semibold text-ink-900">Claim £1,000 Property Income Allowance (SA105 Box 5.1)</span>
+                    <span className="mt-1 block text-xs text-warning-700">
+                      If you claim this allowance for this property, you CANNOT deduct any expenses on your tax return. Only enable this if your annual expenses for this property are less than £1,000.
+                    </span>
+                  </span>
+                </label>
+              </div>
+
               <div className="sm:col-span-2">
                 <Label htmlFor="notes">Notes</Label>
                 <Textarea id="notes" name="notes" rows={3} defaultValue={p.notes ?? ''} />

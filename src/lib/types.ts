@@ -90,6 +90,7 @@ export interface Property {
   status: PropertyStatus
   hero_image_url: string | null
   notes: string | null
+  property_income_allowance?: boolean
   created_at: string
   updated_at: string
 }

@@ -156,13 +156,28 @@ export function messagesPdf(input: {
   return Buffer.from(doc.output('arraybuffer'))
 }
 
+export interface MtdGroupedExportRow {
+  label: string
+  hmrcLabel?: string
+  sa105Box: string
+  total: number
+}
+export interface MtdGroupedExportSection {
+  title: string
+  box: string
+  note?: string
+  rows: MtdGroupedExportRow[]
+  subtotal: number
+}
+
 export function mtdQuarterPdf(input: {
-  property: { nickname: string; address: string }
+  property: { nickname: string; address: string; property_income_allowance?: boolean }
   quarter: { label: string; start: string; end: string }
-  income: { label: string; total: number }[]
-  expenses: { label: string; total: number }[]
+  income: MtdGroupedExportRow[]
+  groups: MtdGroupedExportSection[]
+  section24: { rows: MtdGroupedExportRow[]; subtotal: number; taxCredit: number }
   totalIncome: number
-  totalExpenses: number
+  totalDeductibleExpenses: number
   net: number
 }) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
@@ -171,43 +186,96 @@ export function mtdQuarterPdf(input: {
   doc.setFont('helvetica', 'normal').setFontSize(10).setTextColor(20)
   doc.text(`Period Ended: ${new Date(input.quarter.end).toLocaleDateString('en-GB', { dateStyle: 'long' })}`, 14, 42)
   doc.text(`Quarter: ${input.quarter.label}`, 14, 48)
-  doc.text(`Address of Property: ${input.property.nickname}, ${input.property.address}`, 14, 54, { maxWidth: 182 })
+  doc.text(`Address: ${input.property.nickname}, ${input.property.address}`, 14, 54, { maxWidth: 182 })
 
-  // Income table
+  let nextY = 64
+  if (input.property.property_income_allowance) {
+    autoTable(doc, {
+      startY: nextY,
+      body: [[{
+        content: 'PS1,000 Property Income Allowance claimed for this property - expenses are NOT deductible. SA105 Box 5.1.',
+        styles: { fillColor: [254, 226, 226], textColor: [185, 28, 28], fontStyle: 'bold' as const },
+      }]],
+      theme: 'plain',
+      margin: { left: 14, right: 14 },
+    })
+    nextY = (doc as any).lastAutoTable.finalY + 4
+  }
+
   autoTable(doc, {
-    startY: 66,
-    head: [['Income', '£']],
+    startY: nextY,
+    head: [['Income', 'SA105 Box', 'PS']],
     body: [
-      ...input.income.map((r) => [r.label, r.total.toFixed(2)]),
-      [{ content: 'Total income', styles: { fontStyle: 'bold' } }, { content: input.totalIncome.toFixed(2), styles: { fontStyle: 'bold' } }],
+      ...input.income.map((r) => [r.label, `Box ${r.sa105Box}`, r.total.toFixed(2)]),
+      [{ content: 'Total income', styles: { fontStyle: 'bold' as const } }, '',
+       { content: input.totalIncome.toFixed(2), styles: { fontStyle: 'bold' as const } }],
     ],
-    styles: { fontSize: 10, cellPadding: 2.5 },
-    headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold' },
-    columnStyles: { 0: { cellWidth: 130 }, 1: { halign: 'right' } },
+    styles: { fontSize: 10, cellPadding: 2 },
+    headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold' as const },
+    columnStyles: { 0: { cellWidth: 120 }, 1: { cellWidth: 26 }, 2: { halign: 'right' as const } },
     margin: { left: 14, right: 14 },
   })
 
-  // Expenses table
-  autoTable(doc, {
-    head: [['Expenses', '£']],
-    body: [
-      ...input.expenses.map((r) => [r.label, r.total.toFixed(2)]),
-      [{ content: 'Total expenses', styles: { fontStyle: 'bold' } }, { content: input.totalExpenses.toFixed(2), styles: { fontStyle: 'bold' } }],
-    ],
-    styles: { fontSize: 10, cellPadding: 2.5 },
-    headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold' },
-    columnStyles: { 0: { cellWidth: 130 }, 1: { halign: 'right' } },
-    margin: { left: 14, right: 14 },
-  })
+  for (const grp of input.groups) {
+    if (grp.rows.length === 0 && grp.subtotal === 0) continue
+    autoTable(doc, {
+      head: [[`${grp.title} (${grp.box})`, '', 'PS']],
+      body: [
+        ...grp.rows.map((r) => [r.label, `Box ${r.sa105Box}`, r.total.toFixed(2)]),
+        [{ content: `Subtotal - ${grp.title}`, styles: { fontStyle: 'italic' as const, fillColor: [243, 244, 246] } },
+         { content: '', styles: { fillColor: [243, 244, 246] } },
+         { content: grp.subtotal.toFixed(2), styles: { fontStyle: 'italic' as const, fillColor: [243, 244, 246] } }],
+      ],
+      styles: { fontSize: 10, cellPadding: 2 },
+      headStyles: { fillColor: [55, 65, 81], textColor: 255, fontStyle: 'bold' as const },
+      columnStyles: { 0: { cellWidth: 120 }, 1: { cellWidth: 26 }, 2: { halign: 'right' as const } },
+      margin: { left: 14, right: 14 },
+    })
+  }
 
-  // Net
   autoTable(doc, {
-    body: [[{ content: input.net >= 0 ? 'Profit' : 'Loss', styles: { fontStyle: 'bold', fontSize: 12 } },
-            { content: input.net.toFixed(2), styles: { halign: 'right', fontStyle: 'bold', fontSize: 12, textColor: input.net >= 0 ? [21, 128, 61] : [185, 28, 28] } }]],
-    columnStyles: { 0: { cellWidth: 130 }, 1: {} },
-    margin: { left: 14, right: 14 },
+    body: [[
+      { content: 'TOTAL DEDUCTIBLE EXPENSES', styles: { fontStyle: 'bold' as const, fontSize: 11 } },
+      '',
+      { content: input.totalDeductibleExpenses.toFixed(2), styles: { fontStyle: 'bold' as const, halign: 'right' as const } },
+    ]],
+    columnStyles: { 0: { cellWidth: 120 }, 1: { cellWidth: 26 }, 2: {} },
     theme: 'plain',
+    margin: { left: 14, right: 14 },
   })
+
+  autoTable(doc, {
+    body: [[
+      { content: input.net >= 0 ? 'TAXABLE PROFIT (income minus deductible)' : 'TAXABLE LOSS', styles: { fontStyle: 'bold' as const, fontSize: 12 } },
+      '',
+      { content: input.net.toFixed(2), styles: { halign: 'right' as const, fontStyle: 'bold' as const, fontSize: 12, textColor: input.net >= 0 ? [21, 128, 61] : [185, 28, 28] } },
+    ]],
+    columnStyles: { 0: { cellWidth: 120 }, 1: { cellWidth: 26 }, 2: {} },
+    theme: 'plain',
+    margin: { left: 14, right: 14 },
+  })
+
+  if (input.section24.rows.length > 0 || input.section24.subtotal > 0) {
+    autoTable(doc, {
+      head: [['SECTION 24 - Residential finance costs (SA105 Box 44)', '', 'PS']],
+      body: [
+        [{
+          content: 'Mortgage interest and finance costs are NOT a direct deduction. They give a 20% basic-rate tax credit. Reported separately on Box 44.',
+          colSpan: 3,
+          styles: { fillColor: [254, 226, 226], textColor: [185, 28, 28], fontStyle: 'italic' as const, fontSize: 9 },
+        }],
+        ...input.section24.rows.map((r) => [r.label, `Box ${r.sa105Box}`, r.total.toFixed(2)]),
+        [{ content: 'Section 24 total (Box 44)', styles: { fontStyle: 'bold' as const, textColor: [185, 28, 28] } }, '',
+         { content: input.section24.subtotal.toFixed(2), styles: { halign: 'right' as const, fontStyle: 'bold' as const, textColor: [185, 28, 28] } }],
+        [{ content: '20% tax credit (Section 24)', styles: { fontStyle: 'italic' as const, textColor: [185, 28, 28] } }, '',
+         { content: input.section24.taxCredit.toFixed(2), styles: { halign: 'right' as const, fontStyle: 'italic' as const, textColor: [185, 28, 28] } }],
+      ],
+      styles: { fontSize: 10, cellPadding: 2 },
+      headStyles: { fillColor: [185, 28, 28], textColor: 255, fontStyle: 'bold' as const },
+      columnStyles: { 0: { cellWidth: 120 }, 1: { cellWidth: 26 }, 2: { halign: 'right' as const } },
+      margin: { left: 14, right: 14 },
+    })
+  }
 
   footer(doc)
   return Buffer.from(doc.output('arraybuffer'))

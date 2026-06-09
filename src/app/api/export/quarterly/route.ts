@@ -5,6 +5,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { isDemoMode } from '@/lib/demo/client'
 import { quarterById, quarterFor, type MtdTransaction } from '@/lib/mtd'
 import { buildMtdXlsx, buildMtdTransactionsXlsx } from '@/lib/xlsx'
+import { INCOME_META, EXPENSE_META } from '@/lib/mtd'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -88,11 +89,32 @@ export async function GET(req: Request) {
     storage_path: d.storage_path,
   }))))
   folder.file('mtd_transactions.csv',      toCsv(mtd ?? []))
+  folder.file('mtd_transactions_categorised.csv', toCsv(((mtd ?? []) as any[]).map((t) => {
+    const incomeMeta = t.income_category ? (INCOME_META as any)[t.income_category] : null
+    const expenseMeta = t.expense_category ? (EXPENSE_META as any)[t.expense_category] : null
+    const meta = incomeMeta ?? expenseMeta
+    return {
+      transaction_date: t.transaction_date,
+      kind: t.kind,
+      category: meta?.label ?? '',
+      hmrc_label: meta?.hmrcLabel ?? '',
+      sa105_box: meta?.sa105Box ?? '',
+      section24: expenseMeta?.section24 ? 'YES' : '',
+      amount: Number(t.amount),
+      supplier_or_payer: t.supplier_or_payer ?? '',
+      description: t.description ?? '',
+    }
+  })))
   folder.file('mortgages.csv',             toCsv(mortgages ?? []))
 
   // MTD xlsx (accountant template)
   const xlsx = await buildMtdXlsx({
-    property: { nickname: property.nickname, address: `${property.address_line_1}, ${property.city} ${property.postcode}`, furnished: true },
+    property: {
+      nickname: property.nickname,
+      address: `${property.address_line_1}, ${property.city} ${property.postcode}`,
+      furnished: true,
+      property_income_allowance: !!property.property_income_allowance,
+    },
     quarter,
     transactions: (mtd ?? []) as MtdTransaction[],
   })
