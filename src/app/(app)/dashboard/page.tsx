@@ -29,7 +29,7 @@ export default async function DashboardPage() {
     const alerts: string[] = []
 
     // Compliance alerts
-    for (const t of ['gas_safety', 'eicr', 'epc', 'buildings_insurance', 'legionella'] as const) {
+    for (const t of ['gas_safety', 'eicr', 'epc', 'buildings_insurance', 'legionella', 'ico_registration'] as const) {
       const latest = pCerts.filter((c) => c.type === t).sort((a, b) => (a.expires_on > b.expires_on ? -1 : 1))[0]
       const state = complianceState(latest)
       if (state === 'missing') alerts.push(`${COMPLIANCE_META[t].shortLabel} missing`)

@@ -13,6 +13,7 @@ const KIND_OPTIONS: { value: DocumentKind; label: string }[] = [
   { value: 'eicr',                label: 'EICR (Electrical)' },
   { value: 'epc',                 label: 'EPC (Energy Performance)' },
   { value: 'legionella',          label: 'Legionella Risk Assessment' },
+  { value: 'ico_registration',    label: 'ICO Registration (Data Protection)' },
   { value: 'buildings_insurance', label: 'Buildings Insurance' },
   { value: 'tenancy_agreement',   label: 'Tenancy Agreement' },
   { value: 'deposit_certificate', label: 'Deposit Certificate' },
@@ -29,6 +30,7 @@ const COMPLIANCE_FLOW: Partial<Record<DocumentKind, { schemaKind: string; compli
   eicr:                { schemaKind: 'eicr',                complianceType: 'eicr',                label: 'EICR' },
   epc:                 { schemaKind: 'epc',                 complianceType: 'epc',                 label: 'EPC' },
   legionella:          { schemaKind: 'legionella',          complianceType: 'legionella',          label: 'Legionella' },
+  ico_registration:    { schemaKind: 'ico_registration',    complianceType: 'ico_registration',    label: 'ICO Registration' },
   buildings_insurance: { schemaKind: 'buildings_insurance', complianceType: 'buildings_insurance', label: 'Buildings Insurance' },
 }
 
@@ -91,9 +93,9 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
           const expiresOn   = fields.expiry_date ?? fields.next_review_due ?? fields.cover_end_date
           if (completedOn && expiresOn) {
             const issuedBy =
-              fields.engineer_name ?? fields.inspector_name ?? fields.assessor_name ?? fields.insurer ?? null
+              fields.engineer_name ?? fields.inspector_name ?? fields.assessor_name ?? fields.insurer ?? fields.organisation_name ?? null
             const reference =
-              fields.gas_safe_number ?? fields.certificate_number ?? fields.reference_number ?? fields.policy_number ?? fields.reference ?? null
+              fields.gas_safe_number ?? fields.certificate_number ?? fields.reference_number ?? fields.policy_number ?? fields.reference ?? fields.registration_number ?? null
             const notes = fields.defects_found ?? fields.actions_required ?? null
 
             const { error: certErr } = await supabase.from('compliance_certificates').insert({

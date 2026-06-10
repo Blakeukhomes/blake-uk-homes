@@ -28,7 +28,7 @@ const TAB_KINDS: Record<string, string[]> = {
   leases:       ['tenancy_agreement'],
   invoices:     ['invoice'],
   receipts:     ['invoice'],
-  certificates: ['gas_safety', 'eicr', 'epc', 'buildings_insurance', 'legionella'],
+  certificates: ['gas_safety', 'eicr', 'epc', 'buildings_insurance', 'legionella', 'ico_registration'],
   ids:          [],
   contracts:    ['tenancy_agreement'],
   e_signatures: [],
@@ -36,7 +36,7 @@ const TAB_KINDS: Record<string, string[]> = {
 }
 
 function badgeTone(kind: string): 'success' | 'warning' | 'info' | 'danger' | 'neutral' | 'accent' {
-  if (['gas_safety', 'eicr', 'epc', 'buildings_insurance', 'legionella'].includes(kind)) return 'danger'
+  if (['gas_safety', 'eicr', 'epc', 'buildings_insurance', 'legionella', 'ico_registration'].includes(kind)) return 'danger'
   if (kind === 'tenancy_agreement') return 'info'
   if (kind === 'invoice') return 'accent'
   return 'neutral'
@@ -45,7 +45,7 @@ function badgeTone(kind: string): 'success' | 'warning' | 'info' | 'danger' | 'n
 function categoryLabel(kind: string): string {
   const map: Record<string, string> = {
     gas_safety: 'Certificate', eicr: 'Certificate', epc: 'Certificate',
-    buildings_insurance: 'Certificate', legionella: 'Certificate',
+    buildings_insurance: 'Certificate', legionella: 'Certificate', ico_registration: 'Certificate',
     tenancy_agreement: 'Lease',
     invoice: 'Invoice',
     deposit_certificate: 'Other',

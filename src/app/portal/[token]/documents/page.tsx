@@ -13,6 +13,7 @@ const KIND_LABEL: Record<string, { label: string; Icon: any; color: string }> = 
   epc:                  { label: 'EPC Certificate',      Icon: Leaf,     color: 'text-success-500' },
   eicr:                 { label: 'EICR',                 Icon: Zap,      color: 'text-warning-500' },
   legionella:           { label: 'Legionella',           Icon: Droplet,  color: 'text-accent-500' },
+  ico_registration:     { label: 'ICO Registration',     Icon: Shield,   color: 'text-accent-500' },
   buildings_insurance:  { label: 'Buildings Insurance',  Icon: Shield,   color: 'text-accent-500' },
   inventory_move_in:    { label: 'Move-in Inventory',    Icon: FileText, color: 'text-accent-500' },
   inventory_move_out:   { label: 'Move-out Inventory',   Icon: FileText, color: 'text-accent-500' },

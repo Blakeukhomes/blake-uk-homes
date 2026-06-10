@@ -83,6 +83,23 @@ const SCHEMAS: Record<string, { name: string; description: string; input_schema:
       required: ['property_address', 'assessment_date'],
     },
   },
+  ico_registration: {
+    name: 'extract_ico_registration',
+    description: 'Extract fields from a UK ICO (Information Commissioner\'s Office) Data Protection Registration certificate.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        organisation_name:   { type: 'string', description: 'Name of the data controller (landlord or company)' },
+        registration_number: { type: 'string', description: 'ICO registration number, typically ZA followed by digits' },
+        tier:                { type: 'string', enum: ['Tier 1', 'Tier 2', 'Tier 3'], description: 'Fee tier paid' },
+        fee_paid:            { type: 'number', description: 'Annual fee paid in GBP, typically 40, 60, or 2900' },
+        registration_date:   { type: 'string', description: 'ISO yyyy-mm-dd, the date the registration started' },
+        expiry_date:         { type: 'string', description: 'ISO yyyy-mm-dd, typically +1 year' },
+        registered_address:  { type: 'string' },
+      },
+      required: ['organisation_name', 'registration_number', 'expiry_date'],
+    },
+  },
   buildings_insurance: {
     name: 'extract_buildings_insurance',
     description: 'Extract fields from a UK landlord Buildings Insurance certificate or schedule.',
@@ -280,6 +297,15 @@ function demoFields(kind: string) {
     risk_rating: 'low',
     actions_required: 'Run all outlets weekly. Re-assess in 2 years.',
     reference: 'LRA-26-118',
+  }
+  if (kind === 'ico_registration') return {
+    organisation_name: 'Blake UK Homes',
+    registration_number: 'ZA871543',
+    tier: 'Tier 1',
+    fee_paid: 40,
+    registration_date: '2026-04-01',
+    expiry_date: '2027-04-01',
+    registered_address: '13 William Street, Luton LU2 7RE',
   }
   if (kind === 'buildings_insurance') return {
     property_address: 'Hitchin Road, Luton LU2 7SR',

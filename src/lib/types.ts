@@ -43,7 +43,7 @@ export interface Contact {
   updated_at: string
 }
 export type PropertyStatus = 'tenanted' | 'vacant' | 'legal_proceedings'
-export type ComplianceType = 'gas_safety' | 'eicr' | 'epc' | 'buildings_insurance' | 'legionella'
+export type ComplianceType = 'gas_safety' | 'eicr' | 'epc' | 'buildings_insurance' | 'legionella' | 'ico_registration'
 export type RentStatus = 'paid' | 'late' | 'missing' | 'partial'
 export type MaintenanceKind = 'inspection' | 'task'
 export type FaultSeverity = 'emergency' | 'urgent' | 'standard' | 'minor'
@@ -264,6 +264,7 @@ export type DocumentKind =
   | 'epc'
   | 'buildings_insurance'
   | 'legionella'
+  | 'ico_registration'
   | 'tenancy_agreement'
   | 'deposit_certificate'
   | 'how_to_rent'
