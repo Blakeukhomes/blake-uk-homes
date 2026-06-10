@@ -1,6 +1,6 @@
 'use client'
-import { useState } from 'react'
-import { Send, Sparkles } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Send, Sparkles, Mic, MicOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/cn'
 
@@ -22,9 +22,75 @@ export function AssistantChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
+  const [listening, setListening] = useState(false)
+  const [voiceError, setVoiceError] = useState<string | null>(null)
+  const recognitionRef = useRef<any>(null)
+  const baseInputRef = useRef('')
+
+  // Set up Web Speech API once. Falls back silently on browsers that don't support it (Firefox).
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const SR: any = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SR) return
+    const rec = new SR()
+    rec.continuous = true
+    rec.interimResults = true
+    rec.lang = 'en-GB'
+    rec.onresult = (e: any) => {
+      let interim = ''
+      let final = ''
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript
+        if (e.results[i].isFinal) final += t
+        else interim += t
+      }
+      if (final) baseInputRef.current = (baseInputRef.current + ' ' + final).trim()
+      const combined = (baseInputRef.current + (interim ? ' ' + interim : '')).trim()
+      setInput(combined)
+    }
+    rec.onend = () => setListening(false)
+    rec.onerror = (e: any) => {
+      const msg = e?.error === 'not-allowed'
+        ? 'Microphone permission denied. Allow it in your browser settings and try again.'
+        : `Microphone error: ${e?.error ?? 'unknown'}`
+      setVoiceError(msg)
+      setListening(false)
+    }
+    recognitionRef.current = rec
+    return () => { try { rec.stop() } catch {} }
+  }, [])
+
+  const voiceSupported = typeof window !== 'undefined' &&
+    ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
+
+  function toggleMic() {
+    setVoiceError(null)
+    if (!recognitionRef.current) {
+      setVoiceError('Voice input is not supported in this browser. Try Chrome, Edge, or Safari.')
+      return
+    }
+    if (listening) {
+      try { recognitionRef.current.stop() } catch {}
+      setListening(false)
+    } else {
+      baseInputRef.current = input
+      try {
+        recognitionRef.current.start()
+        setListening(true)
+      } catch (e: any) {
+        setVoiceError('Could not start microphone. Please refresh the page.')
+      }
+    }
+  }
 
   async function send(text: string) {
     if (!text.trim() || busy) return
+    // Stop listening before sending so it doesn't keep adding text after submit
+    if (listening && recognitionRef.current) {
+      try { recognitionRef.current.stop() } catch {}
+      setListening(false)
+    }
+    baseInputRef.current = ''
     const userMsg: ChatMessage = { role: 'user', body: text }
     const next = [...messages, userMsg]
     setMessages(next)
@@ -63,6 +129,11 @@ export function AssistantChat() {
                 </button>
               ))}
             </div>
+            {voiceSupported && (
+              <p className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-accent-50 px-3 py-1.5 text-[11px] text-accent-700">
+                <Mic className="h-3 w-3" /> Tip: tap the mic to speak instead of type
+              </p>
+            )}
           </div>
         ) : (
           messages.map((m, i) => (
@@ -105,15 +176,45 @@ export function AssistantChat() {
         )}
       </div>
 
+      {/* Voice status / error */}
+      {listening && (
+        <div className="mt-3 flex items-center gap-2 rounded-lg bg-danger-50 px-3 py-2 text-xs text-danger-700">
+          <span className="relative inline-flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-danger-500 opacity-75"></span>
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-danger-500"></span>
+          </span>
+          Listening... speak naturally. Tap the mic again to stop.
+        </div>
+      )}
+      {voiceError && !listening && (
+        <p className="mt-2 text-xs text-danger-600">{voiceError}</p>
+      )}
+
       {/* Input */}
       <form
         onSubmit={(e) => { e.preventDefault(); send(input) }}
         className="mt-4 flex items-center gap-2 border-t hairline border-t-ink-100 pt-3"
       >
+        {voiceSupported && (
+          <button
+            type="button"
+            onClick={toggleMic}
+            className={cn(
+              'shrink-0 rounded-lg p-2 transition-colors',
+              listening
+                ? 'bg-danger-500 text-white shadow-sm'
+                : 'bg-ink-100 text-ink-700 hover:bg-accent-100 hover:text-accent-700'
+            )}
+            aria-label={listening ? 'Stop listening' : 'Speak to Hudson'}
+            title={listening ? 'Stop listening' : 'Speak to Hudson'}
+          >
+            {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+          </button>
+        )}
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your message..."
+          placeholder={listening ? 'Listening...' : 'Type your message or tap the mic...'}
           className="flex-1 rounded-lg border-0 bg-white px-3 py-2 text-sm shadow-sm ring-1 ring-inset ring-ink-200 focus:outline-none focus:ring-2 focus:ring-accent-500"
         />
         <Button type="submit" disabled={busy || !input.trim()}>
