@@ -1,9 +1,11 @@
+'use client'
 // Illustrative house components for Blake UK Homes.
 // Two large variants are realistic cross-section dollhouses with a black UK
 // street sign mounted on the upper-left roof slope:
 //   - WelcomeHouse: cool daylight palette (auth pages, portal welcome)
 //   - HomeHouse:    warmer "lights on" palette (tenant portal home screen)
 // House is still the small street-view tile used in the dashboard street row.
+import { useId } from 'react'
 import { cn } from '@/lib/cn'
 
 export type HouseStatus = 'tenanted' | 'vacant' | 'legal_proceedings'
@@ -12,17 +14,45 @@ export type HouseStatus = 'tenanted' | 'vacant' | 'legal_proceedings'
 export function House({
   status = 'vacant',
   hasAlert = false,
+  streetName,
   className,
 }: {
   status?: HouseStatus
   hasAlert?: boolean
+  streetName?: string
   className?: string
 }) {
+  const rawId = useId()
+  const uid = `tile_${rawId.replace(/[^a-zA-Z0-9]/g, '_')}`
+
   const isLegal  = status === 'legal_proceedings'
   const greenLit = status === 'tenanted' && !hasAlert
   const amberLit = hasAlert && !isLegal
   const redLit   = isLegal
 
+  return (
+    <div className={cn('relative inline-block', className)} style={{ width: 96, height: 96 }}>
+      <Dollhouse
+        uniqueId={uid}
+        lit={status === 'tenanted'}
+        streetName={streetName}
+        className="absolute left-0 top-0 h-full w-full"
+      />
+      {/* Status traffic-light pole overlay */}
+      <svg className="absolute -left-1 top-8" width="11" height="34" viewBox="0 0 11 34" aria-hidden>
+        <rect x="0.5" y="0" width="10" height="34" rx="1.5" fill="#1e293b" />
+        <circle cx="5.5" cy="7"  r="3" fill={redLit   ? '#ef4444' : '#333'} />
+        <circle cx="5.5" cy="17" r="3" fill={amberLit ? '#f59e0b' : '#333'} />
+        <circle cx="5.5" cy="27" r="3" fill={greenLit ? '#22c55e' : '#333'} />
+      </svg>
+    </div>
+  )
+}
+
+// === Legacy small House SVG kept as a fallback / for direct testing ===
+function _LegacyHouse({
+  redLit, amberLit, greenLit, className,
+}: { redLit: boolean; amberLit: boolean; greenLit: boolean; className?: string }) {
   return (
     <svg width="82" height="88" viewBox="0 0 82 88" xmlns="http://www.w3.org/2000/svg" className={cn('block', className)} aria-hidden>
       {/* Chimney — navy slate to match the new dollhouse roof */}
@@ -58,6 +88,7 @@ export function House({
     </svg>
   )
 }
+// _LegacyHouse close above
 
 function signFontSize(name: string): number {
   const len = name.length
@@ -340,7 +371,7 @@ export function StreetRow({
           {properties.map((p) => {
             const content = (
               <div className="flex w-[110px] cursor-pointer flex-col items-center transition-transform hover:-translate-y-1">
-                <House status={p.status} hasAlert={(p.alertCount ?? 0) > 0} />
+                <House status={p.status} hasAlert={(p.alertCount ?? 0) > 0} streetName={p.nickname} />
                 <p className="mt-2 max-w-[100px] truncate text-center text-xs font-semibold text-ink-800">{p.nickname}</p>
               </div>
             )
