@@ -105,13 +105,6 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="mt-6 text-sm text-ink-500">
-            No account yet?{' '}
-            <Link href="/signup" className="font-semibold text-accent-600 hover:text-accent-700">
-              Create one
-            </Link>
-          </p>
-
           <p className="mt-12 text-[11px] text-ink-400">
             By signing in you agree to keep your portfolio data private and secure.
           </p>
