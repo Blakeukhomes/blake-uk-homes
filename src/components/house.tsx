@@ -33,7 +33,7 @@ export function House({
   // Unused, but kept available if the host wants to colour-code a status border later
   void redLit; void amberLit; void greenLit
   return (
-    <div className={cn('relative inline-block', className)} style={{ width: 96, height: 96 }}>
+    <div className={cn('relative inline-block', className)} style={{ width: 192, height: 192 }}>
       <Dollhouse
         uniqueId={uid}
         lit={status === 'tenanted'}

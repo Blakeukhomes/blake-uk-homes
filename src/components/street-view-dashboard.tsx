@@ -109,27 +109,27 @@ export function StreetViewDashboard({
                 key={p.id}
                 onClick={() => setSelectedId(p.id === selectedId ? null : p.id)}
                 className={cn(
-                  'flex w-[90px] cursor-pointer flex-col items-center transition-transform',
+                  'flex w-[180px] cursor-pointer flex-col items-center transition-transform',
                   selectedId === p.id ? '-translate-y-1' : 'hover:-translate-y-0.5',
                 )}
               >
                 <span
-                  className="mb-1 block max-w-[88px] truncate text-center text-[10px] font-bold text-ink-900"
+                  className="mb-1 block max-w-[170px] truncate text-center text-[13px] font-bold text-ink-900"
                 >
                   {p.short_name}
                 </span>
                 <House status={p.status} hasAlert={p.alerts.length > 0} />
-                <p className="mt-1 text-[9px] font-semibold" style={{ color: STATUS[p.status].text }}>
+                <p className="mt-1 text-[12px] font-semibold" style={{ color: STATUS[p.status].text }}>
                   {STATUS[p.status].label}
                 </p>
               </button>
             ))}
             {/* Add property plot */}
-            <Link href="/properties/new" className="flex w-[90px] flex-col items-center opacity-50 hover:opacity-80">
-              <div className="flex h-[82px] w-[82px] items-center justify-center rounded-[10px] border-2 border-dashed border-ink-300 bg-white text-[28px] text-ink-400">
+            <Link href="/properties/new" className="flex w-[180px] flex-col items-center opacity-50 hover:opacity-80">
+              <div className="flex h-[170px] w-[170px] items-center justify-center rounded-[10px] border-2 border-dashed border-ink-300 bg-white text-[48px] text-ink-400">
                 +
               </div>
-              <p className="mt-1.5 text-[9px] text-ink-400">Add Property</p>
+              <p className="mt-1.5 text-[13px] text-ink-400">Add Property</p>
             </Link>
           </div>
         </div>
