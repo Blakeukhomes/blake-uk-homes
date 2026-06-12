@@ -30,6 +30,8 @@ export function House({
   const amberLit = hasAlert && !isLegal
   const redLit   = isLegal
 
+  // Unused, but kept available if the host wants to colour-code a status border later
+  void redLit; void amberLit; void greenLit
   return (
     <div className={cn('relative inline-block', className)} style={{ width: 96, height: 96 }}>
       <Dollhouse
@@ -38,13 +40,6 @@ export function House({
         streetName={streetName}
         className="absolute left-0 top-0 h-full w-full"
       />
-      {/* Status traffic-light pole overlay */}
-      <svg className="absolute -left-1 top-8" width="11" height="34" viewBox="0 0 11 34" aria-hidden>
-        <rect x="0.5" y="0" width="10" height="34" rx="1.5" fill="#1e293b" />
-        <circle cx="5.5" cy="7"  r="3" fill={redLit   ? '#ef4444' : '#333'} />
-        <circle cx="5.5" cy="17" r="3" fill={amberLit ? '#f59e0b' : '#333'} />
-        <circle cx="5.5" cy="27" r="3" fill={greenLit ? '#22c55e' : '#333'} />
-      </svg>
     </div>
   )
 }

@@ -114,12 +114,10 @@ export function StreetViewDashboard({
                 )}
               >
                 <span
-                  className="block max-w-[88px] truncate rounded-[3px] px-1.5 py-0.5 text-[9px] font-bold text-white"
-                  style={{ background: '#1e40af' }}
+                  className="mb-1 block max-w-[88px] truncate text-center text-[10px] font-bold text-ink-900"
                 >
                   {p.short_name}
                 </span>
-                <span className="block h-4 w-0.5" style={{ background: '#94a3b8' }} />
                 <House status={p.status} hasAlert={p.alerts.length > 0} />
                 <p className="mt-1 text-[9px] font-semibold" style={{ color: STATUS[p.status].text }}>
                   {STATUS[p.status].label}
