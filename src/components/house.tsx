@@ -123,7 +123,7 @@ function Dollhouse({
   const roofClipId = `${uniqueId}_roofClip`
 
   return (
-    <svg viewBox="-40 -20 320 310" xmlns="http://www.w3.org/2000/svg" className={cn('block', className)} aria-hidden>
+    <svg viewBox="-80 -20 320 310" xmlns="http://www.w3.org/2000/svg" className={cn('block', className)} aria-hidden>
       <defs>
         <linearGradient id={wallGradId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={wallTop} />

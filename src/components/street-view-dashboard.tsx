@@ -118,7 +118,7 @@ export function StreetViewDashboard({
                 >
                   {p.short_name}
                 </span>
-                <House status={p.status} hasAlert={p.alerts.length > 0} />
+                <House status={p.status} hasAlert={p.alerts.length > 0} streetName={p.short_name} />
                 <p className="mt-1 text-[12px] font-semibold" style={{ color: STATUS[p.status].text }}>
                   {STATUS[p.status].label}
                 </p>
