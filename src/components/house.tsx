@@ -25,21 +25,31 @@ export function House({
 
   return (
     <svg width="82" height="88" viewBox="0 0 82 88" xmlns="http://www.w3.org/2000/svg" className={cn('block', className)} aria-hidden>
-      <rect x="54" y="6" width="8" height="16" rx="1" fill="#7a5c3e" opacity="0.8" />
-      <polygon points="41,2 80,30 2,30" fill="#7a5c3e" />
-      <rect x="6" y="29" width="70" height="52" rx="2" fill="#c4a882" />
-      <line x1="6" y1="40" x2="76" y2="40" stroke="#a08060" strokeWidth="0.6" opacity="0.4" />
-      <line x1="6" y1="51" x2="76" y2="51" stroke="#a08060" strokeWidth="0.6" opacity="0.4" />
-      <line x1="6" y1="62" x2="76" y2="62" stroke="#a08060" strokeWidth="0.6" opacity="0.4" />
-      <line x1="6" y1="73" x2="76" y2="73" stroke="#a08060" strokeWidth="0.6" opacity="0.4" />
-      <rect x="30" y="42" width="22" height="39" rx="2" fill="#5a3e2b" />
-      <circle cx="49" cy="63" r="2" fill="#c4a882" opacity="0.8" />
-      <rect x="11" y="34" width="15" height="12" rx="2" fill="white" opacity="0.7" />
-      <line x1="18.5" y1="34" x2="18.5" y2="46" stroke="#c4a882" strokeWidth="1" opacity="0.5" />
-      <line x1="11" y1="40" x2="26" y2="40" stroke="#c4a882" strokeWidth="1" opacity="0.5" />
-      <rect x="56" y="34" width="15" height="12" rx="2" fill="white" opacity="0.7" />
-      <line x1="63.5" y1="34" x2="63.5" y2="46" stroke="#c4a882" strokeWidth="1" opacity="0.5" />
-      <line x1="56" y1="40" x2="71" y2="40" stroke="#c4a882" strokeWidth="1" opacity="0.5" />
+      {/* Chimney — navy slate to match the new dollhouse roof */}
+      <rect x="54" y="6" width="8" height="16" rx="1" fill="#0f172a" />
+      {/* Roof — dark navy with subtle shading line */}
+      <polygon points="41,2 80,30 2,30" fill="#0f172a" />
+      <line x1="2" y1="30" x2="80" y2="30" stroke="#1e293b" strokeWidth="0.6" />
+      {/* Walls — warm cream gradient feel */}
+      <rect x="6" y="29" width="70" height="52" rx="2" fill="#fef3c7" />
+      <rect x="6" y="29" width="70" height="52" rx="2" fill="none" stroke="#0f172a" strokeWidth="1" />
+      {/* Floor divider — wooden band */}
+      <rect x="6" y="55" width="70" height="3" fill="#a16207" />
+      {/* Door — indigo accent */}
+      <rect x="30" y="58" width="22" height="23" rx="1.5" fill="#6366f1" />
+      <circle cx="48" cy="70" r="1.4" fill="#fbbf24" />
+      {/* Left window */}
+      <rect x="11" y="34" width="15" height="12" rx="1.5" fill="#dbeafe" stroke="#0f172a" strokeWidth="0.8" />
+      <line x1="18.5" y1="34" x2="18.5" y2="46" stroke="#0f172a" strokeWidth="0.6" />
+      <line x1="11" y1="40" x2="26" y2="40" stroke="#0f172a" strokeWidth="0.6" />
+      {/* Right window */}
+      <rect x="56" y="34" width="15" height="12" rx="1.5" fill="#dbeafe" stroke="#0f172a" strokeWidth="0.8" />
+      <line x1="63.5" y1="34" x2="63.5" y2="46" stroke="#0f172a" strokeWidth="0.6" />
+      <line x1="56" y1="40" x2="71" y2="40" stroke="#0f172a" strokeWidth="0.6" />
+      {/* Bottom-floor mini windows */}
+      <rect x="11" y="63" width="13" height="10" rx="1.5" fill="#dbeafe" stroke="#0f172a" strokeWidth="0.8" />
+      <rect x="58" y="63" width="13" height="10" rx="1.5" fill="#dbeafe" stroke="#0f172a" strokeWidth="0.8" />
+      {/* Traffic light pole + box (status indicator, unchanged) */}
       <rect x="0" y="29" width="3" height="34" rx="1" fill="#6b7280" />
       <rect x="-5" y="27" width="13" height="38" rx="2" fill="#1e293b" />
       <circle cx="2" cy="35" r="4" fill={redLit   ? '#ef4444' : '#333'} />
