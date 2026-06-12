@@ -10,7 +10,6 @@ export const metadata: Metadata = {
     'Compliance, rent tracking, tenant portal, and court-ready evidence for UK landlords. A private tool for your portfolio.',
   manifest: '/manifest.webmanifest',
   appleWebApp: { capable: true, title: 'Blake UK Homes', statusBarStyle: 'black-translucent' },
-  icons: { icon: '/icons/icon-192.png', apple: '/icons/icon-192.png' },
 }
 
 export const viewport: Viewport = {
