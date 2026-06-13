@@ -18,6 +18,7 @@ import {
   FileBarChart,
   Sparkles,
   UserSquare,
+  AlertTriangle,
 } from 'lucide-react'
 import { Logo } from './logo'
 import { cn } from '@/lib/cn'
@@ -34,6 +35,7 @@ const NAV = [
   { href: '/invoices',    label: 'Invoices',   icon: Receipt },
   { href: '/mtd',         label: 'MTD tax',    icon: FileBarChart },
   { href: '/maintenance', label: 'Maintenance',icon: Wrench },
+  { href: '/faults',      label: 'Faults',     icon: AlertTriangle },
   { href: '/documents',   label: 'Documents',  icon: FolderArchive },
   { href: '/reports',     label: 'Reports',    icon: FileBarChart },
   { href: '/assistant',   label: 'AI Hudson',    icon: Sparkles },
