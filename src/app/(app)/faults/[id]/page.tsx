@@ -1,11 +1,13 @@
 import Link from 'next/link'
 import { revalidatePath } from 'next/cache'
+import { Download } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { PageHeader } from '@/components/app-shell'
 import { Card, CardBody, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input, Label, Select, Textarea } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { FaultMediaGallery } from '@/components/fault-media-gallery'
 import type { FaultReport, FaultEvent, ContractorBooking, FaultState } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
@@ -78,6 +80,21 @@ export default async function FaultDetailPage({ params }: { params: { id: string
         }
       />
       <div className="p-6 grid gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-2" id="attachments">
+          <CardHeader className="flex flex-row items-start justify-between gap-4">
+            <div>
+              <CardTitle>Photos and videos</CardTitle>
+              <CardDescription>Submitted by the tenant when this fault was reported.</CardDescription>
+            </div>
+            <Link href={`/api/faults/${f.id}/attachments.zip`}>
+              <Button variant="secondary" size="sm"><Download className="h-4 w-4" />Download all (zip)</Button>
+            </Link>
+          </CardHeader>
+          <CardBody>
+            <FaultMediaGallery faultId={f.id} />
+          </CardBody>
+        </Card>
+
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Transcript</CardTitle>

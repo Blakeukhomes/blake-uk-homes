@@ -112,6 +112,8 @@ export async function POST(req: NextRequest) {
           : { data: null }
         if (owner?.email) {
           const sev = (body.severity || 'standard').toUpperCase()
+          const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://blakehomesuk.co.uk').replace(/\/$/, '')
+          const faultUrl = `${siteUrl}/faults/${fault.id}#attachments`
           const lines = [
             `${sev} fault reported by ${reporter_name}`,
             ``,
@@ -123,11 +125,12 @@ export async function POST(req: NextRequest) {
             `Description: ${body.description || '(none)'}`,
             ``,
             `Photos: ${photos}    Videos: ${videos}`,
+            `View attachments: ${faultUrl}`,
             ``,
             `Reference: ${fault.reference}`,
             `Reported:  ${new Date(fault.reported_at).toLocaleString('en-GB')}`,
             ``,
-            `Reply via Blake UK Homes to schedule a contractor or message the tenant.`,
+            `Open fault in Blake UK Homes to schedule a contractor or message the tenant.`,
           ].join('\n')
           await sendEmail({
             to: owner.email,
