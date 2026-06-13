@@ -72,5 +72,7 @@ export default async function DashboardPage() {
   const fullName = profile?.full_name ?? user?.email ?? 'You'
   const initials = (fullName ?? 'YOU').split(/\s+/).map((s: string) => s[0]).join('').slice(0, 2).toUpperCase()
 
-  return <StreetViewDashboard user={{ initials }} properties={streetProperties} />
+  const openFaults = (faults as any[]).length
+
+  return <StreetViewDashboard user={{ initials }} properties={streetProperties} openFaults={openFaults} />
 }

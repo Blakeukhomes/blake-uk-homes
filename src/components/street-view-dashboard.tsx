@@ -27,9 +27,11 @@ const STATUS = {
 export function StreetViewDashboard({
   user,
   properties,
+  openFaults = 0,
 }: {
   user: { initials: string }
   properties: StreetProperty[]
+  openFaults?: number
 }) {
   const [filter, setFilter] = useState<Filter>('all')
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -66,8 +68,8 @@ export function StreetViewDashboard({
             </div>
           </div>
 
-          {/* 4-stat grid */}
-          <div className="mb-4 grid grid-cols-4 gap-2">
+          {/* 5-stat grid */}
+          <div className="mb-4 grid grid-cols-5 gap-2">
             <div className="rounded-[10px] bg-ink-800 px-2 py-2.5 text-center">
               <p className="text-lg font-bold text-accent-500">{counts.all}</p>
               <p className="mt-0.5 text-[9px] text-ink-600">Properties</p>
@@ -80,6 +82,13 @@ export function StreetViewDashboard({
               <p className="text-lg font-bold text-danger-500">{counts.alerts}</p>
               <p className="mt-0.5 text-[9px] text-ink-600">Alerts</p>
             </div>
+            <Link href="/faults" className={cn(
+              'rounded-[10px] bg-ink-800 px-2 py-2.5 text-center transition-colors hover:bg-ink-700',
+              openFaults > 0 && 'ring-1 ring-danger-500/60',
+            )}>
+              <p className={cn('text-lg font-bold', openFaults > 0 ? 'text-danger-500' : 'text-ink-500')}>{openFaults}</p>
+              <p className="mt-0.5 text-[9px] text-ink-600">Open faults</p>
+            </Link>
             <div className="rounded-[10px] bg-ink-800 px-2 py-2.5 text-center">
               <p className="text-lg font-bold text-warning-500">£{counts.monthly.toLocaleString()}</p>
               <p className="mt-0.5 text-[9px] text-ink-600">Monthly</p>

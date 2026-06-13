@@ -41,6 +41,7 @@ export default async function PropertyPage({ params }: { params: { id: string } 
             <Link href={`/properties/${p.id}/mortgage`}><Button variant="secondary">Mortgage</Button></Link>
             <Link href={`/properties/${p.id}/rent`}><Button variant="secondary">Rent ledger</Button></Link>
             <Link href={`/properties/${p.id}/compliance`}><Button variant="secondary">Compliance</Button></Link>
+            <Link href={`/properties/${p.id}/faults`}><Button variant="secondary">Faults</Button></Link>
             <Link href={`/properties/${p.id}/documents`}><Button variant="secondary">Documents</Button></Link>
           </>
         }
