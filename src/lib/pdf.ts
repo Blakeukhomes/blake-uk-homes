@@ -2,9 +2,6 @@
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
-const COURT_FOOTER =
-  'All entries timestamped at point of submission. Cannot be retrospectively altered. Suitable for county court submission.'
-
 function header(doc: jsPDF, title: string) {
   doc.setFont('helvetica', 'bold').setFontSize(18)
   doc.text('Blake UK Homes', 14, 18)
@@ -18,11 +15,12 @@ function header(doc: jsPDF, title: string) {
 
 function footer(doc: jsPDF) {
   const pageCount = doc.getNumberOfPages()
+  const stamp = new Date().toLocaleString('en-GB')
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i)
-    doc.setFont('helvetica', 'italic').setFontSize(8).setTextColor(110)
-    doc.text(COURT_FOOTER, 14, 287, { maxWidth: 182 })
-    doc.text(`Page ${i} of ${pageCount}`, 196, 292, { align: 'right' })
+    doc.setFont('helvetica', 'normal').setFontSize(8).setTextColor(140)
+    doc.text(stamp, 14, 290)
+    doc.text(`Page ${i} of ${pageCount}`, 196, 290, { align: 'right' })
   }
 }
 
