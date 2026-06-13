@@ -34,6 +34,7 @@ export default async function TenantsPage() {
                   return (
                     <CopyPortalLinkRow
                       key={t.id}
+                      tenantId={t.id}
                       fullName={t.full_name}
                       email={t.email}
                       propertyId={prop?.id}

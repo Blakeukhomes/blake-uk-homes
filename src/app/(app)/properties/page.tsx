@@ -7,6 +7,7 @@ import { Stat } from '@/components/ui/stat'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { TicketTabs } from '@/components/ticket-tabs'
+import { DeleteRowButton } from '@/components/delete-row-button'
 import { complianceState } from '@/lib/compliance'
 import { arrearsTotal, formatGBP } from '@/lib/rent'
 import { differenceInCalendarDays, parseISO, format, startOfMonth } from 'date-fns'
@@ -120,7 +121,11 @@ export default async function PropertiesPage({ searchParams }: { searchParams: {
               const arrears = arrearsTotal(allPayments.filter((x) => x.property_id === p.id))
               const np = nextPayment(p.id)
               return (
-                <Link key={p.id} href={`/properties/${p.id}`}>
+                <div key={p.id} className="relative">
+                  <div className="absolute right-2 top-2 z-10">
+                    <DeleteRowButton entity="properties" id={p.id} label={p.nickname} hint="All tenants, rent payments, compliance certs and documents linked to this property will also be removed." />
+                  </div>
+                  <Link href={`/properties/${p.id}`}>
                   <Card className="h-full transition-shadow hover:shadow-elevated">
                     {p.hero_image_url ? (
                       <img src={p.hero_image_url} alt="" className="h-32 w-full object-cover" />
@@ -167,7 +172,8 @@ export default async function PropertiesPage({ searchParams }: { searchParams: {
                       </div>
                     </CardBody>
                   </Card>
-                </Link>
+                  </Link>
+                </div>
               )
             })}
           </div>

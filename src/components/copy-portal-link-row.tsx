@@ -2,14 +2,17 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Copy, Check, ExternalLink } from 'lucide-react'
+import { DeleteRowButton } from './delete-row-button'
 
 export function CopyPortalLinkRow({
+  tenantId,
   fullName,
   email,
   propertyId,
   propertyName,
   portalToken,
 }: {
+  tenantId: string
   fullName: string
   email: string | null
   propertyId: string | undefined
@@ -90,6 +93,9 @@ export function CopyPortalLinkRow({
           >
             <ExternalLink className="h-4 w-4" />
           </Link>
+          <span onClick={(e) => e.stopPropagation()}>
+            <DeleteRowButton entity="tenants" id={tenantId} label={fullName} hint="The portal link will stop working and the tenancy record will be removed." />
+          </span>
         </div>
       </button>
       {error && <p className="px-6 pb-2 text-xs text-danger-600">{error}</p>}

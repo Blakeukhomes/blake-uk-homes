@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { PageHeader } from '@/components/app-shell'
 import { Card, CardBody } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { DeleteRowButton } from '@/components/delete-row-button'
 import { Badge } from '@/components/ui/badge'
 import { ContactFilters } from '@/components/contact-filters'
 import type { Contact, ContactKind } from '@/lib/types'
@@ -76,7 +77,10 @@ export default async function ContactsPage({
         ) : (
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {rows.map((c) => (
-              <li key={c.id}>
+              <li key={c.id} className="relative">
+                <div className="absolute right-2 top-2 z-10">
+                  <DeleteRowButton entity="contacts" id={c.id} label={c.full_name} />
+                </div>
                 <Link href={`/contacts/${c.id}`} className="block">
                   <Card className="h-full transition-shadow hover:shadow-elevated">
                     <CardBody>
