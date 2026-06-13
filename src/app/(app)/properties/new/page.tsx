@@ -31,6 +31,10 @@ export default function NewPropertyPage() {
       rent_due_day: Number(formData.get('rent_due_day') ?? 1),
       status: String(formData.get('status') ?? 'vacant') as any,
       hero_image_url: (formData.get('hero_image_url') as string) || null,
+      ownership_type: String(formData.get('ownership_type') ?? 'personal'),
+      company_name: (formData.get('company_name') as string) || null,
+      company_number: (formData.get('company_number') as string) || null,
+      company_year_end_month: Number(formData.get('company_year_end_month') ?? 0) || null,
     }
 
     const { data, error } = await supabase.from('properties').insert(payload).select('id').single()
@@ -107,6 +111,42 @@ export default function NewPropertyPage() {
                   <option value="tenanted">Tenanted</option>
                   <option value="legal_proceedings">Legal proceedings</option>
                 </Select>
+              </div>
+
+              <div className="sm:col-span-2 rounded-xl border border-accent-500/30 bg-accent-50 p-4">
+                <Label>Owned by</Label>
+                <div className="mt-2 grid grid-cols-2 gap-3">
+                  <label className="cursor-pointer rounded-xl border-2 border-ink-200 bg-white p-3 transition-colors has-[input:checked]:border-accent-500 has-[input:checked]:bg-accent-500 has-[input:checked]:text-white">
+                    <input type="radio" name="ownership_type" value="personal" defaultChecked className="sr-only" />
+                    <p className="text-sm font-semibold">Personal</p>
+                    <p className="text-xs opacity-80">MTD ITSA quarterly. Section 24 applies.</p>
+                  </label>
+                  <label className="cursor-pointer rounded-xl border-2 border-ink-200 bg-white p-3 transition-colors has-[input:checked]:border-accent-500 has-[input:checked]:bg-accent-500 has-[input:checked]:text-white">
+                    <input type="radio" name="ownership_type" value="limited_company" className="sr-only" />
+                    <p className="text-sm font-semibold">Limited Company</p>
+                    <p className="text-xs opacity-80">Annual corp tax. Interest is deductible.</p>
+                  </label>
+                </div>
+                <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                  <div>
+                    <Label htmlFor="company_name">Company name</Label>
+                    <Input id="company_name" name="company_name" placeholder="Blake Properties Ltd" />
+                  </div>
+                  <div>
+                    <Label htmlFor="company_number">Companies House no.</Label>
+                    <Input id="company_number" name="company_number" placeholder="12345678" />
+                  </div>
+                  <div>
+                    <Label htmlFor="company_year_end_month">Year-end month</Label>
+                    <Select id="company_year_end_month" name="company_year_end_month" defaultValue="3">
+                      <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                      <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                      <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                      <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+                    </Select>
+                  </div>
+                </div>
+                <p className="mt-2 text-[11px] text-ink-500">For limited-company properties, fill in company details so reports are formatted correctly.</p>
               </div>
 
               <div className="sm:col-span-2 flex justify-end gap-2 pt-2">

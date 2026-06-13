@@ -42,7 +42,13 @@ const GROUPS_IN_ORDER: { key: MtdGroupKey; categories: MtdExpenseCategory[] }[] 
 const SECTION24_CATEGORIES: MtdExpenseCategory[] = ['btl_mortgage_interest', 'other_finance_costs']
 
 export async function buildMtdXlsx(input: {
-  property: { nickname: string; address: string; furnished?: boolean; property_income_allowance?: boolean }
+  property: {
+    nickname: string; address: string;
+    furnished?: boolean;
+    property_income_allowance?: boolean;
+    ownership_type?: 'personal' | 'limited_company';
+    company_name?: string | null;
+  }
   quarter: MtdQuarter
   transactions: MtdTransaction[]
 }): Promise<Buffer> {
@@ -64,6 +70,10 @@ export async function buildMtdXlsx(input: {
   ws.getCell('A2').font = { italic: true, color: { argb: 'FF6B7280' } }
   ws.getCell('A3').value = `Property: ${input.property.nickname} — ${input.property.address}`
   ws.getCell('A3').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: HIGHLIGHT_AMBER } }
+  if (input.property.ownership_type === 'limited_company') {
+    ws.getCell('A4').value = `Limited Company: ${input.property.company_name ?? 'Unnamed Ltd'}`
+    ws.getCell('A4').font = { bold: true, color: { argb: 'FF6366F1' } }
+  }
 
   // Property Income Allowance banner (if applicable)
   let row = 5
@@ -162,7 +172,8 @@ export async function buildMtdXlsx(input: {
   ws.getCell(`D${row}`).border = { top: { style: 'thin' }, bottom: { style: 'thin' } }
   row += 3
 
-  // Section 24 — separate block
+  // Section 24 — separate block (personal only)
+  if (input.property.ownership_type !== 'limited_company') {
   ws.mergeCells(`A${row}:D${row}`)
   ws.getCell(`A${row}`).value = 'SECTION 24 — RESIDENTIAL FINANCE COSTS (SA105 Box 44)'
   ws.getCell(`A${row}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: SECTION24_BAND } }
@@ -199,6 +210,8 @@ export async function buildMtdXlsx(input: {
   ws.getCell(`D${row}`).numFmt = '#,##0.00'
   ws.getCell(`D${row}`).font = { italic: true, color: { argb: SECTION24_BAND } }
   row += 1
+
+  }
 
   const buf = await wb.xlsx.writeBuffer()
   return Buffer.from(buf as ArrayBuffer)

@@ -63,6 +63,12 @@ export default async function MtdPage({
         actions={
           <>
             <MtdQuarterPicker quarters={quarters} selected={quarter.id} />
+            <Link href={`/api/export/portfolio?ownership=personal&q=${quarter.id}`} target="_blank">
+              <Button variant="secondary"><Download className="h-4 w-4" />Personal portfolio</Button>
+            </Link>
+            <Link href={`/api/export/portfolio?ownership=limited_company&q=${quarter.id}`} target="_blank">
+              <Button variant="secondary"><Download className="h-4 w-4" />Ltd Co portfolio</Button>
+            </Link>
             <Link href="/mtd/new">
               <Button><Plus className="h-4 w-4" />Log transaction</Button>
             </Link>
@@ -88,7 +94,7 @@ export default async function MtdPage({
           </Card>
         ) : (
           props.map((p) => {
-            const summary = summariseQuarter(p.id, allTxs, quarter)
+            const summary = summariseQuarter(p.id, allTxs, quarter, ((p as any).ownership_type ?? 'personal') as 'personal' | 'limited_company')
             return (
               <Card key={p.id}>
                 <CardHeader>

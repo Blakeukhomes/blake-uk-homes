@@ -37,7 +37,13 @@ export async function GET(req: Request) {
   const address = property.address_line_1 + ', ' + property.city + ' ' + property.postcode
 
   const xlsx = await buildMtdXlsx({
-    property: { nickname: property.nickname, address, furnished: true },
+    property: {
+      nickname: property.nickname,
+      address,
+      furnished: true,
+      ownership_type: (property.ownership_type ?? 'personal') as 'personal' | 'limited_company',
+      company_name: property.company_name ?? null,
+    },
     quarter,
     transactions: (txs ?? []) as MtdTransaction[],
   })

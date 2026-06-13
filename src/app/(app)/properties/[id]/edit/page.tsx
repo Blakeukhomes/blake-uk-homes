@@ -16,7 +16,7 @@ export default async function EditPropertyPage({ params }: { params: { id: strin
   const supabase = createClient()
   const { data: property } = await supabase.from('properties').select('*').eq('id', params.id).maybeSingle()
   if (!property) notFound()
-  const p = property as Property & { country?: string; listing_type?: string; property_income_allowance?: boolean }
+  const p = property as Property & { country?: string; listing_type?: string; property_income_allowance?: boolean; ownership_type?: 'personal' | 'limited_company'; company_name?: string | null; company_number?: string | null; company_year_end_month?: number | null }
 
   async function update(formData: FormData) {
     'use server'
@@ -36,6 +36,10 @@ export default async function EditPropertyPage({ params }: { params: { id: strin
       status: String(formData.get('status') ?? 'vacant') as any,
       notes: (formData.get('notes') as string) || null,
       property_income_allowance: formData.get('property_income_allowance') === 'on',
+      ownership_type: String(formData.get('ownership_type') ?? 'personal'),
+      company_name: (formData.get('company_name') as string) || null,
+      company_number: (formData.get('company_number') as string) || null,
+      company_year_end_month: Number(formData.get('company_year_end_month') ?? 0) || null,
     }
     const { error } = await supabase.from('properties').update(payload).eq('id', params.id)
     if (error) throw new Error(error.message)
@@ -127,6 +131,42 @@ export default async function EditPropertyPage({ params }: { params: { id: strin
                   <option value="legal_proceedings">Legal proceedings</option>
                 </Select>
               </div>
+              <div className="sm:col-span-2 rounded-xl border border-accent-500/30 bg-accent-50 p-4">
+                <Label>Owned by</Label>
+                <div className="mt-2 grid grid-cols-2 gap-3">
+                  <label className="cursor-pointer rounded-xl border-2 border-ink-200 bg-white p-3 transition-colors has-[input:checked]:border-accent-500 has-[input:checked]:bg-accent-500 has-[input:checked]:text-white">
+                    <input type="radio" name="ownership_type" value="personal" defaultChecked={(p.ownership_type ?? 'personal') !== 'limited_company'} className="sr-only" />
+                    <p className="text-sm font-semibold">Personal</p>
+                    <p className="text-xs opacity-80">MTD ITSA quarterly. Section 24 applies (mortgage interest = 20% tax credit).</p>
+                  </label>
+                  <label className="cursor-pointer rounded-xl border-2 border-ink-200 bg-white p-3 transition-colors has-[input:checked]:border-accent-500 has-[input:checked]:bg-accent-500 has-[input:checked]:text-white">
+                    <input type="radio" name="ownership_type" value="limited_company" defaultChecked={p.ownership_type === 'limited_company'} className="sr-only" />
+                    <p className="text-sm font-semibold">Limited Company</p>
+                    <p className="text-xs opacity-80">Annual corporation tax. Mortgage interest is a normal deductible expense.</p>
+                  </label>
+                </div>
+                <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                  <div>
+                    <Label htmlFor="company_name">Company name</Label>
+                    <Input id="company_name" name="company_name" placeholder="Blake Properties Ltd" defaultValue={p.company_name ?? ''} />
+                  </div>
+                  <div>
+                    <Label htmlFor="company_number">Companies House no.</Label>
+                    <Input id="company_number" name="company_number" placeholder="12345678" defaultValue={p.company_number ?? ''} />
+                  </div>
+                  <div>
+                    <Label htmlFor="company_year_end_month">Year-end month</Label>
+                    <Select id="company_year_end_month" name="company_year_end_month" defaultValue={String(p.company_year_end_month ?? 3)}>
+                      <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                      <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                      <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                      <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+                    </Select>
+                  </div>
+                </div>
+                <p className="mt-2 text-[11px] text-ink-500">For limited-company properties, the company name + Companies House number + financial year-end are used on annual reports. For personal properties leave blank.</p>
+              </div>
+
               <div className="sm:col-span-2 rounded-xl border border-warning-500/30 bg-warning-50 p-4">
                 <label className="flex items-start gap-3 cursor-pointer">
                   <input

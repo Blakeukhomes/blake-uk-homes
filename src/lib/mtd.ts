@@ -269,6 +269,7 @@ export function summariseQuarter(
   property_id: string,
   txs: MtdTransaction[],
   quarter: MtdQuarter,
+  ownership: 'personal' | 'limited_company' = 'personal',
 ): MtdSummary {
   const inQ = txs.filter((t) => t.property_id === property_id && isInQuarter(t.transaction_date, quarter))
 
@@ -304,8 +305,14 @@ export function summariseQuarter(
       }))
       .filter((r) => r.total > 0 || r.count > 0)
 
-  const section24          = allExpenseRows.filter((r) => EXPENSE_META[r.category].section24 === true)
-  const expensesDeductible = allExpenseRows.filter((r) => EXPENSE_META[r.category].section24 !== true)
+  // Section 24 only applies to personally-owned properties. For limited-company
+  // properties mortgage interest is a normal deductible expense (CT, not ITSA).
+  const section24          = ownership === 'personal'
+    ? allExpenseRows.filter((r) => EXPENSE_META[r.category].section24 === true)
+    : []
+  const expensesDeductible = ownership === 'personal'
+    ? allExpenseRows.filter((r) => EXPENSE_META[r.category].section24 !== true)
+    : allExpenseRows
 
   const totalIncome = income.reduce((s, r) => s + r.total, 0)
   const totalDeductibleExpenses = expensesDeductible.reduce((s, r) => s + r.total, 0)

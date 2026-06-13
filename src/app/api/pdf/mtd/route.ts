@@ -40,7 +40,7 @@ export async function GET(req: Request) {
     .gte('transaction_date', format(quarter.start, 'yyyy-MM-dd'))
     .lte('transaction_date', format(quarter.end, 'yyyy-MM-dd'))
 
-  const s = summariseQuarter(propertyId, (txs ?? []) as MtdTransaction[], quarter)
+  const s = summariseQuarter(propertyId, (txs ?? []) as MtdTransaction[], quarter, (property.ownership_type ?? 'personal') as 'personal' | 'limited_company')
 
   const groups = GROUP_ORDER.map((g) => {
     const meta = GROUP_LABEL[g.key]
@@ -73,6 +73,8 @@ export async function GET(req: Request) {
       nickname: property.nickname,
       address: `${property.address_line_1}, ${property.city} ${property.postcode}`,
       property_income_allowance: !!property.property_income_allowance,
+      ownership_type: (property.ownership_type ?? 'personal') as 'personal' | 'limited_company',
+      company_name: property.company_name ?? null,
     },
     quarter: {
       label: quarter.label,

@@ -324,11 +324,11 @@ function Dollhouse({
         <rect x="113" y="116" width="26" height="4" fill="#16a34a" />
       </g>
 
-      {/* Roof-mounted street sign (outside scale transform so it stays crisp) */}
-      <rect x="-30" y="40" width="78" height="22" rx="2" fill="#0f172a" />
-      <rect x="-28" y="42" width="74" height="18" rx="1.5" fill="none" stroke="#6366f1" strokeOpacity="0.40" strokeWidth="0.6" />
+      {/* Roof-mounted street sign — white background, black text for max legibility at small sizes (UK street-sign style) */}
+      <rect x="-30" y="40" width="78" height="22" rx="2" fill="#ffffff" stroke="#0f172a" strokeWidth="1.2" />
+      <rect x="-27" y="43" width="72" height="16" rx="1" fill="none" stroke="#0f172a" strokeOpacity="0.30" strokeWidth="0.6" />
       <rect x="7" y="62" width="3" height="34" fill="#475569" />
-      <text x="9" y="55" textAnchor="middle" fontFamily="Inter, system-ui, sans-serif" fontSize={fontSize} fontWeight="700" fill="#ffffff" letterSpacing="0.8">
+      <text x="9" y="55" textAnchor="middle" fontFamily="Inter, system-ui, sans-serif" fontSize={fontSize} fontWeight="800" fill="#0f172a" letterSpacing="0.6">
         {label}
       </text>
     </svg>

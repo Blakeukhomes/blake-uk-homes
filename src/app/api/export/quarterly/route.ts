@@ -114,6 +114,8 @@ export async function GET(req: Request) {
       address: `${property.address_line_1}, ${property.city} ${property.postcode}`,
       furnished: true,
       property_income_allowance: !!property.property_income_allowance,
+      ownership_type: (property.ownership_type ?? 'personal') as 'personal' | 'limited_company',
+      company_name: property.company_name ?? null,
     },
     quarter,
     transactions: (mtd ?? []) as MtdTransaction[],

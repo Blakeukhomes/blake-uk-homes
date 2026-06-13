@@ -171,7 +171,12 @@ export interface MtdGroupedExportSection {
 }
 
 export function mtdQuarterPdf(input: {
-  property: { nickname: string; address: string; property_income_allowance?: boolean }
+  property: {
+    nickname: string; address: string;
+    property_income_allowance?: boolean;
+    ownership_type?: 'personal' | 'limited_company';
+    company_name?: string | null;
+  }
   quarter: { label: string; start: string; end: string }
   income: MtdGroupedExportRow[]
   groups: MtdGroupedExportSection[]
@@ -187,6 +192,11 @@ export function mtdQuarterPdf(input: {
   doc.text(`Period Ended: ${new Date(input.quarter.end).toLocaleDateString('en-GB', { dateStyle: 'long' })}`, 14, 42)
   doc.text(`Quarter: ${input.quarter.label}`, 14, 48)
   doc.text(`Address: ${input.property.nickname}, ${input.property.address}`, 14, 54, { maxWidth: 182 })
+  if (input.property.ownership_type === 'limited_company') {
+    doc.setFont('helvetica', 'bold')
+    doc.text(`Limited Company: ${input.property.company_name ?? 'Unnamed Ltd'}`, 14, 60, { maxWidth: 182 })
+    doc.setFont('helvetica', 'normal')
+  }
 
   let nextY = 64
   if (input.property.property_income_allowance) {

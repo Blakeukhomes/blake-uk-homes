@@ -43,6 +43,7 @@ export interface Contact {
   updated_at: string
 }
 export type PropertyStatus = 'tenanted' | 'vacant' | 'legal_proceedings'
+export type OwnershipType = 'personal' | 'limited_company'
 export type ComplianceType = 'gas_safety' | 'eicr' | 'epc' | 'buildings_insurance' | 'legionella' | 'ico_registration'
 export type RentStatus = 'paid' | 'late' | 'missing' | 'partial'
 export type MaintenanceKind = 'inspection' | 'task'
@@ -91,6 +92,10 @@ export interface Property {
   hero_image_url: string | null
   notes: string | null
   property_income_allowance?: boolean
+  ownership_type?: OwnershipType
+  company_name?: string | null
+  company_number?: string | null
+  company_year_end_month?: number | null
   created_at: string
   updated_at: string
 }
