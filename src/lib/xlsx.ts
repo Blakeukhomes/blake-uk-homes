@@ -29,7 +29,7 @@ const GROUPS_IN_ORDER: { key: MtdGroupKey; categories: MtdExpenseCategory[] }[] 
     'council_tax', 'light_and_heat', 'water_rates', 'premise_running_costs', 'telephone',
   ] },
   { key: 'group4_professional', categories: [
-    'professional_fees', 'legal_fees', 'accountancy_fees', 'bank_charges',
+    'professional_fees', 'letting_agent_fees', 'legal_fees', 'accountancy_fees', 'bank_charges',
   ] },
   { key: 'group5_other', categories: [
     'travel_costs', 'rent_a_room_expense', 'other',

@@ -27,6 +27,7 @@ export type MtdExpenseCategory =
   | 'premise_running_costs'
   | 'telephone'
   | 'professional_fees'
+  | 'letting_agent_fees'
   | 'legal_fees'
   | 'rent_a_room_expense'
   | 'redecorating'
@@ -94,6 +95,7 @@ export const EXPENSE_META: Record<MtdExpenseCategory, CategoryMeta> = {
 
   // Group 4 — Legal, management and professional fees (Box 8)
   professional_fees:       { label: 'Professional Fees',       hmrcLabel: 'Legal, management and professional fees',          sa105Box: '8', group: 'group4_professional' },
+  letting_agent_fees:      { label: 'Letting Agent Fees',      hmrcLabel: 'Legal, management and professional fees (letting agent)', sa105Box: '8', group: 'group4_professional' },
   legal_fees:              { label: 'Legal Fees',              hmrcLabel: 'Legal, management and professional fees (legal)',  sa105Box: '8', group: 'group4_professional' },
   accountancy_fees:        { label: 'Accountancy fees',        hmrcLabel: 'Legal, management and professional fees (accy)',   sa105Box: '8', group: 'group4_professional' },
   bank_charges:            { label: 'Bank Charges',            hmrcLabel: 'Legal, management and professional fees (bank)',   sa105Box: '8', group: 'group4_professional' },

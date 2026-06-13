@@ -152,6 +152,7 @@ const SCHEMAS: Record<string, { name: string; description: string; input_schema:
         suggested_mtd_category: {
           type: 'string',
           enum: ['council_tax','light_and_heat','water_rates','white_goods','insurance',
+                 'letting_agent_fees',
                  'window_cleaning','general_cleaning','oven_cleaning','gardening',
                  'premise_running_costs','telephone','professional_fees','legal_fees',
                  'redecorating','ground_rent','service_charges','repairs_and_maintenance',
