@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/app-shell'
 import { Card, CardBody, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { DeleteRowButton } from '@/components/delete-row-button'
 import type { FaultReport } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
@@ -60,8 +61,13 @@ function FaultListCard({ title, description, rows }: { title: string; descriptio
         ) : (
           <ul className="divide-y hairline divide-ink-100">
             {rows.map((f) => (
-              <li key={f.id} className="px-6 py-3">
-                <Link href={`/faults/${f.id}`} className="block">
+              <li key={f.id} className="relative px-6 py-3">
+                {(f.current_state === 'resolved' || f.current_state === 'closed') && (
+                  <div className="absolute right-3 top-1/2 z-10 -translate-y-1/2" onClick={(e) => e.stopPropagation()}>
+                    <DeleteRowButton entity="faults" id={f.id} label={`fault ${f.reference}`} hint="All photos, videos and transcript will be removed." />
+                  </div>
+                )}
+                <Link href={`/faults/${f.id}`} className="block pr-10">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-medium text-ink-900 truncate">{f.category}</p>

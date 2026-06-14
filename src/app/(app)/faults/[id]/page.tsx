@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input, Label, Select, Textarea } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { FaultMediaGallery } from '@/components/fault-media-gallery'
+import { DeleteRowButton } from '@/components/delete-row-button'
 import type { FaultReport, FaultEvent, ContractorBooking, FaultState } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
@@ -74,9 +75,20 @@ export default async function FaultDetailPage({ params }: { params: { id: string
         title={`${f.category}, ${f.properties?.nickname}`}
         subtitle={`Ref ${f.reference} · reported ${new Date(f.reported_at).toLocaleString('en-GB')}`}
         actions={
-          <Link href={`/api/pdf/fault/${f.id}`} target="_blank">
-            <Button>Print court-ready PDF</Button>
-          </Link>
+          <>
+            <Link href={`/api/pdf/fault/${f.id}`} target="_blank">
+              <Button>Print court-ready PDF</Button>
+            </Link>
+            {(f.current_state === 'resolved' || f.current_state === 'closed') && (
+              <DeleteRowButton
+                entity="faults"
+                id={f.id}
+                label={`fault ${f.reference}`}
+                hint="All photos, videos, transcript entries and contractor bookings will also be removed."
+                variant="full"
+              />
+            )}
+          </>
         }
       />
       <div className="p-6 grid gap-6 lg:grid-cols-3">

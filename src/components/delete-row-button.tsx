@@ -15,7 +15,7 @@ export function DeleteRowButton({
   hint,
   variant = 'icon',
 }: {
-  entity: 'properties' | 'tenants' | 'contacts' | 'documents'
+  entity: 'properties' | 'tenants' | 'contacts' | 'documents' | 'faults'
   id: string
   label: string
   hint?: string
