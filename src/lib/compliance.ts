@@ -33,17 +33,28 @@ export function daysUntilExpiry(cert: ComplianceCertificate) {
   return differenceInCalendarDays(parseISO(cert.expires_on), new Date())
 }
 
-// Court-readiness score: 0-100. Five compliance items now, each worth 20.
-export function courtReadinessScore(certs: ComplianceCertificate[]): number {
-  const types: ComplianceType[] = ['gas_safety', 'eicr', 'epc', 'buildings_insurance', 'legionella', 'ico_registration']
-  // Six items, total 100. Weight per type ~= 16.67 (use 17 for valid, 10 for due_soon, 3 for expired)
+// Court-readiness score: 0-100. Six compliance items, weight ~16.67 each.
+// When `allElectric` is true the property has no gas supply, so gas safety is
+// excluded from the calculation and the remaining items absorb its weight.
+export function courtReadinessScore(certs: ComplianceCertificate[], allElectric = false): number {
+  const allTypes: ComplianceType[] = ['gas_safety', 'eicr', 'epc', 'buildings_insurance', 'legionella', 'ico_registration']
+  const types = allElectric ? allTypes.filter((t) => t !== 'gas_safety') : allTypes
+  const validWeight = 100 / types.length
+  const dueSoonWeight = validWeight * 0.59
+  const expiredWeight = validWeight * 0.18
   let score = 0
   for (const t of types) {
     const latest = certs.filter((c) => c.type === t).sort((a, b) => (a.expires_on > b.expires_on ? -1 : 1))[0]
     const state = complianceState(latest)
-    if (state === 'valid') score += 17
-    else if (state === 'due_soon') score += 10
-    else if (state === 'expired') score += 3
+    if (state === 'valid') score += validWeight
+    else if (state === 'due_soon') score += dueSoonWeight
+    else if (state === 'expired') score += expiredWeight
   }
-  return Math.min(100, score)
+  return Math.min(100, Math.round(score))
+}
+
+// Returns the list of compliance types that apply to a given property.
+export function applicableComplianceTypes(allElectric: boolean): ComplianceType[] {
+  const all: ComplianceType[] = ['gas_safety', 'eicr', 'epc', 'buildings_insurance', 'legionella', 'ico_registration']
+  return allElectric ? all.filter((t) => t !== 'gas_safety') : all
 }

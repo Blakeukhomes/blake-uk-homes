@@ -26,7 +26,7 @@ export default async function PropertyPage({ params }: { params: { id: string } 
       supabase.from('documents').select('id, kind, title, created_at').eq('property_id', p.id).limit(5),
     ])
 
-  const score   = courtReadinessScore((certs ?? []) as ComplianceCertificate[])
+  const score   = courtReadinessScore((certs ?? []) as ComplianceCertificate[], (p as any).is_all_electric ?? false)
   const arrears = arrearsTotal((payments ?? []) as RentPayment[])
   const tenant  = (tenants as Tenant[])[0]
 
@@ -65,7 +65,10 @@ export default async function PropertyPage({ params }: { params: { id: string } 
             <CardDescription>The four certificates that keep this property lettable.</CardDescription>
           </CardHeader>
           <CardBody className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-            {(['gas_safety', 'eicr', 'epc', 'buildings_insurance', 'legionella'] as const).map((t) => {
+            {((p as any).is_all_electric
+              ? (['eicr', 'epc', 'buildings_insurance', 'legionella'] as const)
+              : (['gas_safety', 'eicr', 'epc', 'buildings_insurance', 'legionella'] as const)
+            ).map((t) => {
               const cert = (certs as ComplianceCertificate[])
                 .filter((c) => c.type === t)
                 .sort((a, b) => (a.expires_on > b.expires_on ? -1 : 1))[0]

@@ -16,7 +16,7 @@ export default async function EditPropertyPage({ params }: { params: { id: strin
   const supabase = createClient()
   const { data: property } = await supabase.from('properties').select('*').eq('id', params.id).maybeSingle()
   if (!property) notFound()
-  const p = property as Property & { country?: string; listing_type?: string; property_income_allowance?: boolean; ownership_type?: 'personal' | 'limited_company'; company_name?: string | null; company_number?: string | null; company_year_end_month?: number | null }
+  const p = property as Property & { country?: string; listing_type?: string; property_income_allowance?: boolean; is_all_electric?: boolean; ownership_type?: 'personal' | 'limited_company'; company_name?: string | null; company_number?: string | null; company_year_end_month?: number | null }
 
   async function update(formData: FormData) {
     'use server'
@@ -40,6 +40,7 @@ export default async function EditPropertyPage({ params }: { params: { id: strin
       company_name: (formData.get('company_name') as string) || null,
       company_number: (formData.get('company_number') as string) || null,
       company_year_end_month: Number(formData.get('company_year_end_month') ?? 0) || null,
+      is_all_electric: formData.get('is_all_electric') === 'on',
     }
     const { error } = await supabase.from('properties').update(payload).eq('id', params.id)
     if (error) throw new Error(error.message)
@@ -130,6 +131,17 @@ export default async function EditPropertyPage({ params }: { params: { id: strin
                   <option value="tenanted">Tenanted</option>
                   <option value="legal_proceedings">Legal proceedings</option>
                 </Select>
+              </div>
+              <div className="sm:col-span-2 rounded-xl border border-accent-500/30 bg-accent-50 p-4">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" name="is_all_electric" defaultChecked={p.is_all_electric ?? false} className="mt-1 h-4 w-4 rounded border-ink-300" />
+                  <span className="text-sm">
+                    <span className="block font-semibold text-ink-900">All-electric property (no gas supply)</span>
+                    <span className="mt-1 block text-xs text-ink-600">
+                      Tick this if the property has no gas. A gas safety certificate will not be required and won't show as missing in compliance.
+                    </span>
+                  </span>
+                </label>
               </div>
               <div className="sm:col-span-2 rounded-xl border border-accent-500/30 bg-accent-50 p-4">
                 <Label>Owned by</Label>

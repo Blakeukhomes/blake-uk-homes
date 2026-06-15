@@ -92,6 +92,7 @@ export interface Property {
   hero_image_url: string | null
   notes: string | null
   property_income_allowance?: boolean
+  is_all_electric?: boolean
   ownership_type?: OwnershipType
   company_name?: string | null
   company_number?: string | null
