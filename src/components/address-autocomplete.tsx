@@ -134,7 +134,7 @@ export function AddressAutocomplete({
       )}
 
       {error && (
-        <p className="mt-1 text-xs text-danger-600">{error}</p>
+        <p className="mt-1 text-xs text-danger-700">{error}</p>
       )}
       <p className="mt-1 text-[11px] text-ink-400">Powered by Google Places</p>
     </div>

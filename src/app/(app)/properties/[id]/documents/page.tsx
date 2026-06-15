@@ -47,7 +47,7 @@ export default async function PropertyDocumentsPage({ params }: { params: { id: 
                         </p>
                         {d.ai_summary && (
                           <div className="mt-2 rounded-lg bg-accent-50 p-3 text-xs leading-5 text-ink-700">
-                            <p className="mb-1 font-medium text-accent-700">Claude summary</p>
+                            <p className="mb-1 font-medium text-accent-700">Hudson summary</p>
                             {d.ai_summary}
                           </div>
                         )}

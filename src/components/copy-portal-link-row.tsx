@@ -98,7 +98,7 @@ export function CopyPortalLinkRow({
           </span>
         </div>
       </button>
-      {error && <p className="px-6 pb-2 text-xs text-danger-600">{error}</p>}
+      {error && <p className="px-6 pb-2 text-xs text-danger-700">{error}</p>}
     </li>
   )
 }

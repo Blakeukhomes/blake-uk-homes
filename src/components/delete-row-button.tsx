@@ -48,9 +48,9 @@ export function DeleteRowButton({
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(true) }}
         className={
           variant === 'icon'
-            ? 'rounded-md p-1.5 text-ink-400 hover:bg-danger-50 hover:text-danger-600'
+            ? 'rounded-md p-1.5 text-ink-400 hover:bg-danger-50 hover:text-danger-700'
             : variant === 'compact'
-            ? 'inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-ink-500 hover:bg-danger-50 hover:text-danger-600'
+            ? 'inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-ink-500 hover:bg-danger-50 hover:text-danger-700'
             : 'inline-flex items-center gap-1.5 rounded-lg bg-danger-50 px-3 py-1.5 text-xs font-semibold text-danger-700 hover:bg-danger-100'
         }
         aria-label={`Delete ${label}`}
@@ -90,7 +90,7 @@ export function DeleteRowButton({
                 Cancel
               </button>
               <button type="button" onClick={doDelete} disabled={busy}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-danger-600 px-3 py-2 text-sm font-semibold text-white hover:bg-danger-700 disabled:opacity-50">
+                className="inline-flex items-center gap-1.5 rounded-lg bg-danger-500 px-3 py-2 text-sm font-semibold text-white hover:bg-danger-700 disabled:opacity-50">
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                 {busy ? 'Deleting...' : 'Delete'}
               </button>

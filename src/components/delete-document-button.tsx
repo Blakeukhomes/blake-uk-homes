@@ -39,8 +39,8 @@ export function DeleteDocumentButton({
         onClick={() => setOpen(true)}
         className={
           variant === 'icon'
-            ? 'rounded-md p-1.5 text-ink-400 hover:bg-danger-50 hover:text-danger-600'
-            : 'inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-ink-500 hover:bg-danger-50 hover:text-danger-600'
+            ? 'rounded-md p-1.5 text-ink-400 hover:bg-danger-50 hover:text-danger-700'
+            : 'inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-ink-500 hover:bg-danger-50 hover:text-danger-700'
         }
         aria-label="Delete document"
         title="Delete document"
@@ -94,7 +94,7 @@ export function DeleteDocumentButton({
                 type="button"
                 onClick={doDelete}
                 disabled={busy}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-danger-600 px-3 py-2 text-sm font-semibold text-white hover:bg-danger-700 disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-danger-500 px-3 py-2 text-sm font-semibold text-white hover:bg-danger-700 disabled:opacity-50"
               >
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                 {busy ? 'Deleting...' : 'Delete'}

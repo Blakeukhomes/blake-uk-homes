@@ -187,7 +187,7 @@ export function AssistantChat() {
         </div>
       )}
       {voiceError && !listening && (
-        <p className="mt-2 text-xs text-danger-600">{voiceError}</p>
+        <p className="mt-2 text-xs text-danger-700">{voiceError}</p>
       )}
 
       {/* Input */}

@@ -480,7 +480,7 @@ export function TenantPortal({
                           <button
                             type="button"
                             onClick={() => removeFile(idx)}
-                            className="shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold text-ink-500 hover:bg-danger-50 hover:text-danger-600"
+                            className="shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold text-ink-500 hover:bg-danger-50 hover:text-danger-700"
                           >
                             Remove
                           </button>

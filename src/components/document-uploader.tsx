@@ -174,7 +174,7 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
       }
     }
 
-    // ---- Plain-language Claude summary (optional, runs in background) ----
+    // ---- Plain-language Hudson summary (optional, runs in background) ----
     if (run_ai) {
       setProgress('Summarising with Claude...')
       try {
@@ -274,7 +274,7 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
       </label>
       <label className="sm:col-span-2 inline-flex items-center gap-2 text-sm text-ink-700">
         <input type="checkbox" name="run_ai" defaultChecked className="rounded border-ink-300" />
-        <Sparkles className="h-4 w-4 text-accent-500" /> Generate Claude summary
+        <Sparkles className="h-4 w-4 text-accent-500" /> Generate Hudson summary
       </label>
 
       {error && <p className="sm:col-span-2 rounded bg-danger-100 px-3 py-2 text-sm text-danger-700">{error}</p>}
