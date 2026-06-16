@@ -62,7 +62,15 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setError('Not signed in.'); setBusy(false); return }
 
-    const path = `${propertyId}/${crypto.randomUUID()}-${file.name}`
+    // Supabase Storage keys are restricted to [a-zA-Z0-9.\-_/]. Sanitize the
+    // filename so en-dashes, parentheses, accented characters, etc. don't 400.
+    const safeName = file.name
+      .normalize('NFKD')
+      .replace(/[‐-―]/g, '-')
+      .replace(/[^\w.\-]+/g, '_')
+      .replace(/_+/g, '_')
+      .slice(-180)
+    const path = `${propertyId}/${crypto.randomUUID()}-${safeName}`
     const { error: upErr } = await supabase.storage.from('property-documents').upload(path, file, {
       contentType: file.type, upsert: false,
     })
@@ -176,7 +184,7 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
 
     // ---- Plain-language Hudson summary (optional, runs in background) ----
     if (run_ai) {
-      setProgress('Summarising with Claude...')
+      setProgress('Summarising with Hudson...')
       try {
         const res = await fetch('/api/ai/summarise-document', {
           method: 'POST',

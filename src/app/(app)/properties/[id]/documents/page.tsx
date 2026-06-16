@@ -17,12 +17,12 @@ export default async function PropertyDocumentsPage({ params }: { params: { id: 
 
   return (
     <>
-      <PageHeader title={`${property.nickname}, Documents`} subtitle="Upload tenancy agreement, deposit certificate, How to Rent, invoices. Claude summarises automatically." />
+      <PageHeader title={`${property.nickname}, Documents`} subtitle="Upload tenancy agreement, deposit certificate, How to Rent, invoices. Hudson summarises automatically." />
       <div className="p-6 space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Upload</CardTitle>
-            <CardDescription>PDFs, images, Word docs. Claude generates a summary for searchable PDFs.</CardDescription>
+            <CardDescription>PDFs, images, Word docs. Hudson generates a summary for searchable PDFs.</CardDescription>
           </CardHeader>
           <CardBody>
             <DocumentUploader propertyId={params.id} />
