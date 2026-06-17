@@ -19,6 +19,51 @@ export async function GET(req: Request) {
   }
 
   const sb = createServiceClient()
+
+  // ---- Auto-seed current month's rent row for every property ----
+  // Idempotent: only inserts if a row for this property + this period doesn't exist.
+  let rentRowsSeeded = 0
+  try {
+    const now = new Date()
+    const periodStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+      .toISOString().slice(0, 10) // yyyy-MM-dd
+
+    const { data: allProps = [] } = await sb
+      .from('properties')
+      .select('id, monthly_rent, rent_due_day, status')
+
+    const tenanted = ((allProps ?? []) as any[]).filter((p) => p.status !== 'vacant')
+
+    if (tenanted.length > 0) {
+      const { data: existing = [] } = await sb
+        .from('rent_payments')
+        .select('property_id')
+        .eq('period_start', periodStart)
+      const have = new Set(((existing ?? []) as any[]).map((r) => r.property_id))
+
+      const toInsert = tenanted
+        .filter((p) => !have.has(p.id))
+        .map((p) => {
+          const day = Math.min(Math.max(Number(p.rent_due_day) || 1, 1), 28)
+          const dueDate = `${periodStart.slice(0, 8)}${String(day).padStart(2, '0')}`
+          return {
+            property_id: p.id,
+            period_start: periodStart,
+            due_date: dueDate,
+            amount_due: Number(p.monthly_rent ?? 0),
+            status: 'missing' as const,
+          }
+        })
+
+      if (toInsert.length > 0) {
+        const { error } = await sb.from('rent_payments').insert(toInsert)
+        if (!error) rentRowsSeeded = toInsert.length
+      }
+    }
+  } catch {
+    // non-fatal — notifications still run
+  }
+
   const [
     { data: certs = [] },
     { data: payments = [] },
@@ -72,5 +117,5 @@ export async function GET(req: Request) {
     }
   }
 
-  return NextResponse.json({ events: events.length, emailsSent: sent })
+  return NextResponse.json({ events: events.length, emailsSent: sent, rentRowsSeeded })
 }
