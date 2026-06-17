@@ -58,16 +58,16 @@ export default async function PropertyPage({ params }: { params: { id: string } 
           <Stat label="Arrears" value={formatGBP(arrears)} tone={arrears > 0 ? 'warning' : 'success'} />
         </div>
 
-        {/* Compliance summary */}
+        {/* Required compliance */}
         <Card>
           <CardHeader>
-            <CardTitle>Compliance</CardTitle>
-            <CardDescription>The four certificates that keep this property lettable.</CardDescription>
+            <CardTitle>Required compliance</CardTitle>
+            <CardDescription>Legally required to keep this property lettable. These drive the court-readiness score.</CardDescription>
           </CardHeader>
-          <CardBody className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <CardBody className="grid gap-4 md:grid-cols-3">
             {((p as any).is_all_electric
-              ? (['eicr', 'epc', 'buildings_insurance', 'legionella'] as const)
-              : (['gas_safety', 'eicr', 'epc', 'buildings_insurance', 'legionella'] as const)
+              ? (['eicr', 'epc'] as const)
+              : (['gas_safety', 'eicr', 'epc'] as const)
             ).map((t) => {
               const cert = (certs as ComplianceCertificate[])
                 .filter((c) => c.type === t)
@@ -85,6 +85,39 @@ export default async function PropertyPage({ params }: { params: { id: string } 
                     </p>
                   ) : (
                     <p className="mt-2 text-xs text-ink-500">No certificate on file.</p>
+                  )}
+                </div>
+              )
+            })}
+          </CardBody>
+        </Card>
+
+        {/* To-do / recommended compliance */}
+        <Card>
+          <CardHeader>
+            <CardTitle>To-do</CardTitle>
+            <CardDescription>Recommended — best practice but not legally required to let. Tick off when you've got them.</CardDescription>
+          </CardHeader>
+          <CardBody className="grid gap-4 md:grid-cols-3">
+            {(['buildings_insurance', 'legionella', 'ico_registration'] as const).map((t) => {
+              const cert = (certs as ComplianceCertificate[])
+                .filter((c) => c.type === t)
+                .sort((a, b) => (a.expires_on > b.expires_on ? -1 : 1))[0]
+              const state = complianceState(cert)
+              return (
+                <div key={t} className="rounded-xl border hairline border-ink-100 p-4">
+                  <div className="flex items-start justify-between">
+                    <p className="text-sm font-medium text-ink-900">{COMPLIANCE_META[t].shortLabel}</p>
+                    {state === 'missing'
+                      ? <Badge tone="neutral">To do</Badge>
+                      : <ComplianceBadge state={state} />}
+                  </div>
+                  {cert ? (
+                    <p className="mt-2 text-xs text-ink-500">
+                      Expires {new Date(cert.expires_on).toLocaleDateString('en-GB')} ({daysUntilExpiry(cert)} days)
+                    </p>
+                  ) : (
+                    <p className="mt-2 text-xs text-ink-500">Not set up yet. Add when ready.</p>
                   )}
                 </div>
               )

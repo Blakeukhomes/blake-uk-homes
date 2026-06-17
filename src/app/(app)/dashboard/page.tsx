@@ -28,14 +28,15 @@ export default async function DashboardPage() {
     const pCerts = allCerts.filter((c) => c.property_id === p.id)
     const alerts: string[] = []
 
-    // Compliance alerts
+    // Compliance alerts — only "missing" for required items; to-do items only alert on expired/due_soon
     const complianceTypes = (p as any).is_all_electric
       ? (['eicr', 'epc', 'buildings_insurance', 'legionella', 'ico_registration'] as const)
       : (['gas_safety', 'eicr', 'epc', 'buildings_insurance', 'legionella', 'ico_registration'] as const)
     for (const t of complianceTypes) {
       const latest = pCerts.filter((c) => c.type === t).sort((a, b) => (a.expires_on > b.expires_on ? -1 : 1))[0]
       const state = complianceState(latest)
-      if (state === 'missing') alerts.push(`${COMPLIANCE_META[t].shortLabel} missing`)
+      const tier = COMPLIANCE_META[t].tier
+      if (state === 'missing' && tier === 'required') alerts.push(`${COMPLIANCE_META[t].shortLabel} missing`)
       else if (state === 'expired') alerts.push(`${COMPLIANCE_META[t].shortLabel} expired`)
       else if (state === 'due_soon') {
         const days = Math.max(1, Math.round((new Date(latest!.expires_on).getTime() - Date.now()) / 86_400_000))
@@ -47,7 +48,7 @@ export default async function DashboardPage() {
     if (p.status === 'legal_proceedings') alerts.push('Legal hearing scheduled')
 
     // Open fault alerts (tenant-reported)
-    const pFaults = (faults as any[]).filter((f) => f.property_id === p.id)
+    const pFaults = ((faults ?? []) as any[]).filter((f) => f.property_id === p.id)
     for (const f of pFaults) {
       const tag = f.severity === 'emergency' ? 'EMERGENCY' : f.severity === 'urgent' ? 'URGENT' : ''
       const summary = (f.description || '').slice(0, 40)
@@ -75,7 +76,7 @@ export default async function DashboardPage() {
   const fullName = profile?.full_name ?? user?.email ?? 'You'
   const initials = (fullName ?? 'YOU').split(/\s+/).map((s: string) => s[0]).join('').slice(0, 2).toUpperCase()
 
-  const openFaults = (faults as any[]).length
+  const openFaults = ((faults ?? []) as any[]).length
 
   return <StreetViewDashboard user={{ initials }} properties={streetProperties} openFaults={openFaults} />
 }
