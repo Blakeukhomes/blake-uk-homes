@@ -63,7 +63,7 @@ function FaultListCard({ title, description, rows }: { title: string; descriptio
             {rows.map((f) => (
               <li key={f.id} className="relative px-6 py-3">
                 {(f.current_state === 'resolved' || f.current_state === 'closed') && (
-                  <div className="absolute right-3 top-1/2 z-10 -translate-y-1/2" onClick={(e) => e.stopPropagation()}>
+                  <div className="absolute right-3 top-1/2 z-10 -translate-y-1/2">
                     <DeleteRowButton entity="faults" id={f.id} label={`fault ${f.reference}`} hint="All photos, videos and transcript will be removed." />
                   </div>
                 )}
