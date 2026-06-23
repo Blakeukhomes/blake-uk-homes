@@ -310,4 +310,23 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
 
       {extracted && (
         <div className="sm:col-span-2 rounded-lg border border-success-500/30 bg-success-50 p-4 text-sm">
-          <p className="mb-2 inline-flex items-center gap-2 font-semibold
+          <p className="mb-2 inline-flex items-center gap-2 font-semibold text-success-700">
+            <CheckCircle2 className="h-4 w-4" /> Hudson logged this {extracted.label}
+          </p>
+          <ul className="grid gap-1 text-xs text-success-700 sm:grid-cols-2">
+            {Object.entries(extracted.fields)
+              .filter(([, v]) => v !== null && v !== undefined && v !== '')
+              .map(([k, v]) => (
+                <li key={k}><span className="font-medium">{k.replace(/_/g, ' ')}:</span> {String(v)}</li>
+              ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="sm:col-span-2 flex justify-end gap-2">
+        {progress && <span className="self-center text-sm text-ink-500">{progress}</span>}
+        <Button type="submit" disabled={busy}>Upload</Button>
+      </div>
+    </form>
+  )
+}
