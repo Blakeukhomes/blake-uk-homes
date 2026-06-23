@@ -47,6 +47,7 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
   const [error, setError] = useState<string | null>(null)
   const [kind, setKind] = useState<DocumentKind>('gas_safety')
   const [extracted, setExtracted] = useState<ExtractedSummary | null>(null)
+  const [fileName, setFileName] = useState<string | null>(null)
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -207,8 +208,27 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
     <form onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">
       <div className="sm:col-span-2">
         <Label htmlFor="file">File</Label>
-        <Input id="file" name="file" type="file" required accept="application/pdf,image/*,.doc,.docx" />
-        <p className="mt-1 text-xs text-ink-500">
+        <div className="flex flex-wrap items-center gap-3">
+          <label
+            htmlFor="file"
+            className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-ink-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-ink-800 active:bg-ink-700"
+          >
+            Choose file
+          </label>
+          <span className="text-sm text-ink-600 break-all">
+            {fileName ?? 'No file selected'}
+          </span>
+          <input
+            id="file"
+            name="file"
+            type="file"
+            required
+            accept="application/pdf,image/*,.doc,.docx"
+            className="sr-only"
+            onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
+          />
+        </div>
+        <p className="mt-2 text-xs text-ink-500">
           On phones, also try{' '}
           <label className="cursor-pointer font-semibold text-accent-700 underline">
             take a photo with the camera
@@ -224,6 +244,7 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
                 const dt = new DataTransfer()
                 dt.items.add(file)
                 fileInput.files = dt.files
+                setFileName(file.name)
               }}
             />
           </label>
@@ -289,23 +310,4 @@ export function DocumentUploader({ propertyId }: { propertyId: string }) {
 
       {extracted && (
         <div className="sm:col-span-2 rounded-lg border border-success-500/30 bg-success-50 p-4 text-sm">
-          <p className="mb-2 inline-flex items-center gap-2 font-semibold text-success-700">
-            <CheckCircle2 className="h-4 w-4" /> Hudson logged this {extracted.label}
-          </p>
-          <ul className="grid gap-1 text-xs text-success-700 sm:grid-cols-2">
-            {Object.entries(extracted.fields)
-              .filter(([, v]) => v !== null && v !== undefined && v !== '')
-              .map(([k, v]) => (
-                <li key={k}><span className="font-medium">{k.replace(/_/g, ' ')}:</span> {String(v)}</li>
-              ))}
-          </ul>
-        </div>
-      )}
-
-      <div className="sm:col-span-2 flex justify-end gap-2">
-        {progress && <span className="self-center text-sm text-ink-500">{progress}</span>}
-        <Button type="submit" disabled={busy}>Upload</Button>
-      </div>
-    </form>
-  )
-}
+          <p className="mb-2 inline-flex items-center gap-2 font-semibold
