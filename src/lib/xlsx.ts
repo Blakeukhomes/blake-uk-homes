@@ -21,17 +21,17 @@ const ORDER_INCOME: MtdIncomeCategory[] = [
 ]
 
 const GROUPS_IN_ORDER: { key: MtdGroupKey; categories: MtdExpenseCategory[] }[] = [
-  { key: 'group1_repairs', categories: [
+  { key: 'box25_repairs', categories: [
     'repairs_and_maintenance', 'redecorating', 'white_goods', 'window_cleaning',
     'general_cleaning', 'oven_cleaning', 'gardening', 'insurance', 'ground_rent', 'service_charges',
   ] },
-  { key: 'group2_services', categories: [
+  { key: 'box28_services', categories: [
     'council_tax', 'light_and_heat', 'water_rates', 'premise_running_costs', 'telephone',
   ] },
-  { key: 'group4_professional', categories: [
+  { key: 'box27_professional', categories: [
     'professional_fees', 'letting_agent_fees', 'legal_fees', 'accountancy_fees', 'bank_charges',
   ] },
-  { key: 'group5_other', categories: [
+  { key: 'box29_other', categories: [
     'travel_costs', 'rent_a_room_expense', 'other',
   ] },
   { key: 'private_use', categories: [

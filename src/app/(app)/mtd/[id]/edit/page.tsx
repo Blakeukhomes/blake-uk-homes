@@ -7,7 +7,8 @@ import { PageHeader } from '@/components/app-shell'
 import { Card, CardBody } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input, Label, Select, Textarea } from '@/components/ui/input'
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, type MtdTransaction } from '@/lib/mtd'
+import { type MtdTransaction } from '@/lib/mtd'
+import { MtdCategorySelects } from '@/components/mtd-category-selects'
 import type { Property } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
@@ -69,30 +70,11 @@ export default async function EditMtdPage({ params }: { params: { id: string } }
                 <Input id="transaction_date" name="transaction_date" type="date" required defaultValue={t.transaction_date} />
               </div>
 
-              <div className="sm:col-span-2">
-                <Label>Type</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  <label className="cursor-pointer rounded-lg border border-ink-200 bg-white p-3 text-sm has-[input:checked]:border-success-500 has-[input:checked]:bg-success-50">
-                    <input type="radio" name="kind" value="income" defaultChecked={t.kind === 'income'} className="mr-2" /> Income
-                  </label>
-                  <label className="cursor-pointer rounded-lg border border-ink-200 bg-white p-3 text-sm has-[input:checked]:border-warning-500 has-[input:checked]:bg-warning-50">
-                    <input type="radio" name="kind" value="expense" defaultChecked={t.kind === 'expense'} className="mr-2" /> Expense
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="income_category">Income category</Label>
-                <Select id="income_category" name="income_category" defaultValue={t.income_category ?? 'period_amount'}>
-                  {INCOME_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="expense_category">Expense category</Label>
-                <Select id="expense_category" name="expense_category" defaultValue={t.expense_category ?? 'repairs_and_maintenance'}>
-                  {EXPENSE_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-                </Select>
-              </div>
+              <MtdCategorySelects
+                defaultKind={t.kind as 'income' | 'expense'}
+                defaultIncome={t.income_category ?? 'period_amount'}
+                defaultExpense={t.expense_category ?? 'repairs_and_maintenance'}
+              />
 
               <div>
                 <Label htmlFor="amount">Amount (£)</Label>

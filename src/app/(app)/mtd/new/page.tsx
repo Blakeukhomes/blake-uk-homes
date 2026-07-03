@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/app-shell'
 import { Card, CardBody } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input, Label, Select, Textarea } from '@/components/ui/input'
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '@/lib/mtd'
+import { MtdCategorySelects } from '@/components/mtd-category-selects'
 import type { Property } from '@/lib/types'
 import { format } from 'date-fns'
 
@@ -60,32 +60,7 @@ export default async function NewMtdTransactionPage() {
                 <Input id="transaction_date" name="transaction_date" type="date" required defaultValue={format(new Date(), 'yyyy-MM-dd')} />
               </div>
 
-              <div className="sm:col-span-2">
-                <Label htmlFor="kind">Type</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  <label className="cursor-pointer rounded-lg border border-ink-200 bg-white p-3 text-sm has-[input:checked]:border-success-500 has-[input:checked]:bg-success-50">
-                    <input type="radio" name="kind" value="income" defaultChecked className="mr-2" /> Income
-                  </label>
-                  <label className="cursor-pointer rounded-lg border border-ink-200 bg-white p-3 text-sm has-[input:checked]:border-warning-500 has-[input:checked]:bg-warning-50">
-                    <input type="radio" name="kind" value="expense" className="mr-2" /> Expense
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="income_category">Income category</Label>
-                <Select id="income_category" name="income_category" defaultValue="period_amount">
-                  {INCOME_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-                </Select>
-                <p className="mt-1 text-xs text-ink-500">Used when type = Income.</p>
-              </div>
-              <div>
-                <Label htmlFor="expense_category">Expense category</Label>
-                <Select id="expense_category" name="expense_category" defaultValue="repairs_and_maintenance">
-                  {EXPENSE_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-                </Select>
-                <p className="mt-1 text-xs text-ink-500">Used when type = Expense.</p>
-              </div>
+              <MtdCategorySelects />
 
               <div>
                 <Label htmlFor="amount">Amount (£)</Label>

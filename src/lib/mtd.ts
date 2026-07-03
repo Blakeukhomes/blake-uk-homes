@@ -11,10 +11,13 @@ export type MtdIncomeCategory =
   | 'rent_a_room'
   | 'other_income'
   | 'tax_deducted'
-  | 'lease_premiums'           // NEW (SA105 Box 6 / lease premiums received)
+  | 'lease_premiums'           // Box 22 — Premiums for the grant of a lease
+  | 'reverse_premium'          // NEW — Box 23 — Reverse premiums and inducements
 
 export type MtdExpenseCategory =
   | 'other'
+  | 'non_residential_finance_costs'   // NEW — Box 26 (commercial lets)
+  | 'replacing_domestic_items'        // NEW — Box 36 (residential like-for-like replacements)
   | 'council_tax'
   | 'light_and_heat'
   | 'water_rates'
@@ -45,13 +48,18 @@ export type MtdExpenseCategory =
 // `group` reflects the spec doc's Groups 1-5 plus 'section24' for Box 44 and
 // 'private_use' for Box 10 deductions.
 export type MtdGroupKey =
-  | 'income'
-  | 'group1_repairs'           // SA105 Box 6 — repairs and property running costs
-  | 'group2_services'          // SA105 Box 6 — cost of services provided to tenants
-  | 'group3_section24'         // SA105 Box 44 — residential finance costs (20% credit only)
-  | 'group4_professional'      // SA105 Box 8 — legal/management/professional fees
-  | 'group5_other'             // SA105 Box 9 — other allowable property expenses
-  | 'private_use'              // SA105 Box 10 — private use adjustment
+  | 'income'                   // SA105 Box 20 (+22, +23) — rents and other property income
+  | 'tax_deducted'             // SA105 Box 21 — tax already deducted at source, memo only
+  | 'rent_a_room_relief'       // SA105 Box 37 — Rent a Room exempt relief, not a normal income line
+  | 'box24_rents_rates_insurance'    // SA105 Box 24 — rent, rates, insurance, ground rents
+  | 'box25_repairs'                  // SA105 Box 25 — property repairs and maintenance (like-for-like)
+  | 'box26_non_residential_finance'  // SA105 Box 26 — non-residential property finance costs (fully deductible)
+  | 'box27_professional'             // SA105 Box 27 — legal, management and professional fees
+  | 'box28_services'                 // SA105 Box 28 — cost of services provided incl. wages
+  | 'box29_other'                    // SA105 Box 29 — other allowable property expenses
+  | 'box36_domestic_items'           // SA105 Box 36 — costs of replacing domestic items (residential)
+  | 'box44_residential_finance'      // SA105 Box 44 — residential finance costs (20% tax credit only)
+  | 'private_use'                    // SA105 Box 10 — private use adjustment (rare)
 
 export interface CategoryMeta {
   label: string         // Nick's accountant label (what the user sees)
@@ -62,51 +70,64 @@ export interface CategoryMeta {
 }
 
 export const INCOME_META: Record<MtdIncomeCategory, CategoryMeta> = {
-  period_amount: { label: 'Period Amount (rent)', hmrcLabel: 'Income — rent and services',  sa105Box: '5',    group: 'income' },
-  other_income:  { label: 'Other Income',         hmrcLabel: 'Other income from property',   sa105Box: '5',    group: 'income' },
-  rent_a_room:   { label: 'Rent A Room',          hmrcLabel: 'Rent a Room income',           sa105Box: '5',    group: 'income' },
-  tax_deducted:  { label: 'Tax Deducted',         hmrcLabel: 'Tax deducted at source',       sa105Box: '21',   group: 'income' },
-  lease_premiums:{ label: 'Lease premiums received', hmrcLabel: 'Lease premiums received',   sa105Box: '5',    group: 'income' },
+  period_amount: { label: 'Period Amount (rent)',    hmrcLabel: 'Rents and other income from property', sa105Box: '20', group: 'income' },
+  other_income:  { label: 'Other Income',            hmrcLabel: 'Rents and other income from property', sa105Box: '20', group: 'income' },
+  rent_a_room:   { label: 'Rent a Room (exempt)',    hmrcLabel: 'Rent a Room exempt amount (relief)',    sa105Box: '37', group: 'rent_a_room_relief' },
+  tax_deducted:  { label: 'Tax Deducted at source',  hmrcLabel: 'Tax taken off any income in Box 20',    sa105Box: '21', group: 'tax_deducted' },
+  lease_premiums:{ label: 'Lease premiums received', hmrcLabel: 'Premiums for the grant of a lease',      sa105Box: '22', group: 'income' },
+  reverse_premium:{ label: 'Reverse premium received', hmrcLabel: 'Reverse premiums and inducements',      sa105Box: '23', group: 'income' },
 }
 
 export const EXPENSE_META: Record<MtdExpenseCategory, CategoryMeta> = {
-  // Group 1 — Repairs and property costs (Box 6)
-  repairs_and_maintenance: { label: 'Repairs and Maintenance', hmrcLabel: 'Repairs and maintenance',                       sa105Box: '6', group: 'group1_repairs' },
-  redecorating:            { label: 'Redecorating',            hmrcLabel: 'Repairs and maintenance (redecorating)',         sa105Box: '6', group: 'group1_repairs' },
-  white_goods:             { label: 'White goods',             hmrcLabel: 'Repairs and maintenance (white goods)',          sa105Box: '6', group: 'group1_repairs' },
-  window_cleaning:         { label: 'Window Cleaning',         hmrcLabel: 'Repairs and maintenance (window cleaning)',      sa105Box: '6', group: 'group1_repairs' },
-  general_cleaning:        { label: 'General Cleaning',        hmrcLabel: 'Repairs and maintenance (general cleaning)',     sa105Box: '6', group: 'group1_repairs' },
-  oven_cleaning:           { label: 'Oven Cleaning',           hmrcLabel: 'Repairs and maintenance (oven cleaning)',        sa105Box: '6', group: 'group1_repairs' },
-  gardening:               { label: 'Gardening',               hmrcLabel: 'Repairs and maintenance (gardening)',            sa105Box: '6', group: 'group1_repairs' },
-  insurance:               { label: 'Insurance',               hmrcLabel: 'Rent, rates, insurance, ground rents',           sa105Box: '6', group: 'group1_repairs' },
-  ground_rent:             { label: 'Ground Rent',             hmrcLabel: 'Rent, rates, insurance, ground rents (ground)',  sa105Box: '6', group: 'group1_repairs' },
-  service_charges:         { label: 'Service Charges',         hmrcLabel: 'Rent, rates, insurance, ground rents (svc)',     sa105Box: '6', group: 'group1_repairs' },
+  // Box 24 — Rent, rates, insurance, ground rents
+  insurance:               { label: 'Insurance',               hmrcLabel: 'Rent, rates, insurance, ground rents',           sa105Box: '24', group: 'box24_rents_rates_insurance' },
+  ground_rent:             { label: 'Ground Rent',             hmrcLabel: 'Rent, rates, insurance, ground rents',           sa105Box: '24', group: 'box24_rents_rates_insurance' },
+  service_charges:         { label: 'Service Charges',         hmrcLabel: 'Rent, rates, insurance, ground rents',           sa105Box: '24', group: 'box24_rents_rates_insurance' },
+  council_tax:             { label: 'Council Tax (landlord-paid)', hmrcLabel: 'Rent, rates, insurance, ground rents',       sa105Box: '24', group: 'box24_rents_rates_insurance' },
+  water_rates:             { label: 'Water Rates (landlord-paid)', hmrcLabel: 'Rent, rates, insurance, ground rents',       sa105Box: '24', group: 'box24_rents_rates_insurance' },
+  light_and_heat:          { label: 'Light and Heat (landlord-paid)', hmrcLabel: 'Rent, rates, insurance, ground rents',   sa105Box: '24', group: 'box24_rents_rates_insurance' },
 
-  // Group 2 — Cost of services provided to tenants (Box 6)
-  council_tax:             { label: 'Council Tax',             hmrcLabel: 'Cost of services provided to tenants (council tax)', sa105Box: '6', group: 'group2_services' },
-  light_and_heat:          { label: 'Light and Heat',          hmrcLabel: 'Cost of services provided to tenants (light & heat)', sa105Box: '6', group: 'group2_services' },
-  water_rates:             { label: 'Water Rates',             hmrcLabel: 'Cost of services provided to tenants (water)',       sa105Box: '6', group: 'group2_services' },
-  premise_running_costs:   { label: 'Cost of services provided to tenants', hmrcLabel: 'Cost of services provided to tenants', sa105Box: '6', group: 'group2_services' },
-  telephone:               { label: 'Telephone',               hmrcLabel: 'Cost of services provided to tenants (telephone)',   sa105Box: '6', group: 'group2_services' },
+  // Box 25 — Property repairs and maintenance (like-for-like only)
+  repairs_and_maintenance: { label: 'Repairs and Maintenance', hmrcLabel: 'Property repairs and maintenance',              sa105Box: '25', group: 'box25_repairs' },
+  redecorating:            { label: 'Redecorating',            hmrcLabel: 'Property repairs and maintenance',              sa105Box: '25', group: 'box25_repairs' },
+  window_cleaning:         { label: 'Window Cleaning',         hmrcLabel: 'Property repairs and maintenance',              sa105Box: '25', group: 'box25_repairs' },
+  general_cleaning:        { label: 'General Cleaning',        hmrcLabel: 'Property repairs and maintenance',              sa105Box: '25', group: 'box25_repairs' },
+  oven_cleaning:           { label: 'Oven Cleaning',           hmrcLabel: 'Property repairs and maintenance',              sa105Box: '25', group: 'box25_repairs' },
+  gardening:               { label: 'Gardening',               hmrcLabel: 'Property repairs and maintenance',              sa105Box: '25', group: 'box25_repairs' },
 
-  // Group 3 — Residential finance costs (Box 44 — Section 24)
-  btl_mortgage_interest:   { label: 'Residential BTL Mortgage Interest', hmrcLabel: 'Residential finance costs',  sa105Box: '44', group: 'group3_section24', section24: true },
-  other_finance_costs:     { label: 'Other finance costs',     hmrcLabel: 'Residential finance costs (other)',     sa105Box: '44', group: 'group3_section24', section24: true },
+  // Box 27 — Legal, management and professional fees
+  professional_fees:       { label: 'Professional Fees',       hmrcLabel: 'Legal, management and professional fees',       sa105Box: '27', group: 'box27_professional' },
+  letting_agent_fees:      { label: 'Letting Agent Fees',      hmrcLabel: 'Legal, management and professional fees',       sa105Box: '27', group: 'box27_professional' },
+  legal_fees:              { label: 'Legal Fees',              hmrcLabel: 'Legal, management and professional fees',       sa105Box: '27', group: 'box27_professional' },
+  accountancy_fees:        { label: 'Accountancy fees',        hmrcLabel: 'Legal, management and professional fees',       sa105Box: '27', group: 'box27_professional' },
 
-  // Group 4 — Legal, management and professional fees (Box 8)
-  professional_fees:       { label: 'Professional Fees',       hmrcLabel: 'Legal, management and professional fees',          sa105Box: '8', group: 'group4_professional' },
-  letting_agent_fees:      { label: 'Letting Agent Fees',      hmrcLabel: 'Legal, management and professional fees (letting agent)', sa105Box: '8', group: 'group4_professional' },
-  legal_fees:              { label: 'Legal Fees',              hmrcLabel: 'Legal, management and professional fees (legal)',  sa105Box: '8', group: 'group4_professional' },
-  accountancy_fees:        { label: 'Accountancy fees',        hmrcLabel: 'Legal, management and professional fees (accy)',   sa105Box: '8', group: 'group4_professional' },
-  bank_charges:            { label: 'Bank Charges',            hmrcLabel: 'Legal, management and professional fees (bank)',   sa105Box: '8', group: 'group4_professional' },
+  // Box 28 — Cost of services provided including wages
+  premise_running_costs:   { label: 'Cost of services provided (incl wages)', hmrcLabel: 'Cost of services provided, including wages', sa105Box: '28', group: 'box28_services' },
+  telephone:               { label: 'Telephone (business)',    hmrcLabel: 'Cost of services provided, including wages',   sa105Box: '28', group: 'box28_services' },
 
-  // Group 5 — Other allowable property expenses (Box 9)
-  travel_costs:            { label: 'Travel Costs',            hmrcLabel: 'Other allowable property expenses (travel)', sa105Box: '9', group: 'group5_other' },
-  rent_a_room_expense:     { label: 'Rent A Room (expense)',   hmrcLabel: 'Other allowable property expenses (rar)',    sa105Box: '9', group: 'group5_other' },
-  other:                   { label: 'Other',                   hmrcLabel: 'Other allowable property expenses',          sa105Box: '9', group: 'group5_other' },
+  // Box 29 — Other allowable property expenses
+  bank_charges:            { label: 'Bank Charges',            hmrcLabel: 'Other allowable property expenses',             sa105Box: '29', group: 'box29_other' },
+  travel_costs:            { label: 'Travel Costs',            hmrcLabel: 'Other allowable property expenses',             sa105Box: '29', group: 'box29_other' },
+  other:                   { label: 'Other',                   hmrcLabel: 'Other allowable property expenses',             sa105Box: '29', group: 'box29_other' },
 
-  // Box 10 — Private use adjustment (not common, but spec-listed)
-  private_use_adjustment:  { label: 'Private use adjustment',  hmrcLabel: 'Private use adjustment',                     sa105Box: '10', group: 'private_use' },
+  // Box 36 — Costs of replacing domestic items (residential lettings only)
+  white_goods:             { label: 'Replacing domestic items (white goods, sofas, curtains)', hmrcLabel: 'Costs of replacing domestic items', sa105Box: '36', group: 'box36_domestic_items' },
+
+  // Box 44 — Residential BTL finance costs (Section 24 — 20% tax credit only, NOT deducted)
+  btl_mortgage_interest:   { label: 'Residential BTL Mortgage Interest', hmrcLabel: 'Residential property finance costs',   sa105Box: '44', group: 'box44_residential_finance', section24: true },
+  other_finance_costs:     { label: 'Other residential finance costs',   hmrcLabel: 'Residential property finance costs',   sa105Box: '44', group: 'box44_residential_finance', section24: true },
+
+  // Rent a Room — exempt relief, NOT a normal expense line (kept for legacy rows)
+  rent_a_room_expense:     { label: 'Rent a Room (relief, legacy)', hmrcLabel: 'Rent a Room exempt relief',                sa105Box: '37', group: 'box29_other' },
+
+  // Box 26 — Non-residential (commercial) property finance costs — fully deductible
+  non_residential_finance_costs: { label: 'Non-residential finance costs (commercial let)', hmrcLabel: 'Non-residential property finance costs', sa105Box: '26', group: 'box26_non_residential_finance' },
+
+  // Box 36 — Replacing domestic items (residential like-for-like) — kept separate from repairs
+  replacing_domestic_items: { label: 'Replacing domestic items (like-for-like)', hmrcLabel: 'Costs of replacing domestic items', sa105Box: '36', group: 'box36_domestic_items' },
+
+  // Box 10 — Private use adjustment (rare)
+  private_use_adjustment:  { label: 'Private use adjustment',  hmrcLabel: 'Private use adjustment',                        sa105Box: '10', group: 'private_use' },
 }
 
 // Display-ordered list used in selects / iterations
@@ -124,13 +145,18 @@ export const EXPENSE_LABEL: Record<MtdExpenseCategory, string> =
   Object.fromEntries(Object.entries(EXPENSE_META).map(([k, m]) => [k, m.label])) as Record<MtdExpenseCategory, string>
 
 export const GROUP_LABEL: Record<MtdGroupKey, { title: string; box: string; note?: string }> = {
-  income:              { title: 'Income',                                            box: 'Box 5 / 21' },
-  group1_repairs:      { title: 'Repairs and property running costs',                box: 'Box 6' },
-  group2_services:     { title: 'Cost of services provided to tenants',              box: 'Box 6' },
-  group3_section24:    { title: 'Residential finance costs (Section 24)',            box: 'Box 44', note: 'Not deducted — 20% tax credit only.' },
-  group4_professional: { title: 'Legal, management and professional fees',           box: 'Box 8' },
-  group5_other:        { title: 'Other allowable property expenses',                 box: 'Box 9' },
-  private_use:         { title: 'Private use adjustment',                            box: 'Box 10' },
+  income:                          { title: 'Rents and other income from property', box: 'Box 20' },
+  tax_deducted:                    { title: 'Tax deducted at source',                box: 'Box 21', note: 'Memo only — never added to income.' },
+  rent_a_room_relief:              { title: 'Rent a Room exempt relief',             box: 'Box 37', note: 'Separate scheme — not combined with SA105 totals.' },
+  box24_rents_rates_insurance:     { title: 'Rent, rates, insurance and ground rents', box: 'Box 24' },
+  box25_repairs:                   { title: 'Property repairs and maintenance',      box: 'Box 25', note: 'Like-for-like only. Improvements are capital (CGT, not deductible).' },
+  box26_non_residential_finance:   { title: 'Non-residential property finance costs', box: 'Box 26', note: 'Fully deductible for commercial lets.' },
+  box27_professional:              { title: 'Legal, management and professional fees', box: 'Box 27' },
+  box28_services:                  { title: 'Costs of services provided (incl wages)', box: 'Box 28' },
+  box29_other:                     { title: 'Other allowable property expenses',     box: 'Box 29' },
+  box36_domestic_items:            { title: 'Costs of replacing domestic items',     box: 'Box 36', note: 'Residential lettings — like-for-like replacements only.' },
+  box44_residential_finance:       { title: 'Residential property finance costs',    box: 'Box 44', note: 'Section 24 — 20% tax credit only, not deducted.' },
+  private_use:                     { title: 'Private use adjustment',                box: 'Box 10' },
 }
 
 export interface MtdTransaction {
@@ -259,19 +285,24 @@ export interface MtdSummary {
   quarter: MtdQuarter
   property_id: string
   income: MtdCategoryRow<MtdIncomeCategory>[]
-  /** Group 1, 2, 4, 5, and private_use only — NOT Section 24. */
+  /** Deductible expense groups only — NOT Section 24. */
   expensesDeductible: MtdCategoryRow<MtdExpenseCategory>[]
-  /** Group 3 — residential finance costs, kept separate per Section 24. */
+  /** Box 44 — residential finance costs, kept separate per Section 24. */
   section24: MtdCategoryRow<MtdExpenseCategory>[]
-  /** All expenses including Section 24 (rarely needed, but handy for raw totals). */
+  /** All expenses including Section 24 (raw totals only). */
   expenses: MtdCategoryRow<MtdExpenseCategory>[]
+  /** SA105 Box 20 (+22, +23) — taxable rental income. Excludes Box 21 tax deducted and Box 37 Rent a Room. */
   totalIncome: number
-  /** Deductible expenses only (sum of expensesDeductible). Use this for taxable profit. */
+  /** SA105 Box 21 — tax already deducted at source. Memo only, NOT summed into income. */
+  totalTaxDeducted: number
+  /** SA105 Box 37 — Rent a Room exempt relief. Separate scheme, NOT summed into income. */
+  totalRentARoomRelief: number
+  /** Deductible expenses only. Use for taxable profit. */
   totalDeductibleExpenses: number
-  /** Section 24 total (gives a 20% tax credit, not a deduction). */
+  /** Section 24 total (20% tax credit, not deducted). */
   totalSection24: number
   totalExpenses: number
-  /** Income minus deductible expenses. The 20% credit on section24 is applied later by the accountant. */
+  /** Box 20 income minus deductible expenses. Section 24 credit applied later. */
   net: number
   /** Subtotals per group, in the export order. */
   groupTotals: { group: MtdGroupKey; title: string; box: string; total: number }[]
@@ -326,13 +357,33 @@ export function summariseQuarter(
     ? allExpenseRows.filter((r) => EXPENSE_META[r.category].section24 !== true)
     : allExpenseRows
 
-  const totalIncome = income.reduce((s, r) => s + r.total, 0)
+  // Per HMRC: totalIncome is Box 20 (+22+23) only. Box 21 (tax deducted) and
+  // Box 37 (Rent a Room exempt relief) are reported separately and NOT summed
+  // into taxable income.
+  const totalIncome = income
+    .filter((r) => r.group === 'income')
+    .reduce((s, r) => s + r.total, 0)
+  const totalTaxDeducted = income
+    .filter((r) => r.category === 'tax_deducted')
+    .reduce((s, r) => s + r.total, 0)
+  const totalRentARoomRelief = income
+    .filter((r) => r.category === 'rent_a_room')
+    .reduce((s, r) => s + r.total, 0)
+
   const totalDeductibleExpenses = expensesDeductible.reduce((s, r) => s + r.total, 0)
   const totalSection24 = section24.reduce((s, r) => s + r.total, 0)
   const totalExpenses = totalDeductibleExpenses + totalSection24
 
   const groupKeys: MtdGroupKey[] = [
-    'group1_repairs', 'group2_services', 'group4_professional', 'group5_other', 'private_use', 'group3_section24',
+    'box24_rents_rates_insurance',
+    'box25_repairs',
+    'box27_professional',
+    'box28_services',
+    'box29_other',
+    'box36_domestic_items',
+    'box26_non_residential_finance',
+    'private_use',
+    'box44_residential_finance',
   ]
   const groupTotals = groupKeys.map((g) => {
     const total = allExpenseRows.filter((r) => r.group === g).reduce((s, r) => s + r.total, 0)
@@ -349,6 +400,8 @@ export function summariseQuarter(
     totalIncome,
     totalDeductibleExpenses,
     totalSection24,
+    totalTaxDeducted,
+    totalRentARoomRelief,
     totalExpenses,
     net: totalIncome - totalDeductibleExpenses,
     groupTotals,

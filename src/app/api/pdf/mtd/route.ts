@@ -12,13 +12,13 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 const GROUP_ORDER: { key: MtdGroupKey; cats: MtdExpenseCategory[] }[] = [
-  { key: 'group1_repairs', cats: [
+  { key: 'box25_repairs', cats: [
     'repairs_and_maintenance','redecorating','white_goods','window_cleaning',
     'general_cleaning','oven_cleaning','gardening','insurance','ground_rent','service_charges',
   ] },
-  { key: 'group2_services', cats: ['council_tax','light_and_heat','water_rates','premise_running_costs','telephone'] },
-  { key: 'group4_professional', cats: ['professional_fees','letting_agent_fees','legal_fees','accountancy_fees','bank_charges'] },
-  { key: 'group5_other', cats: ['travel_costs','rent_a_room_expense','other'] },
+  { key: 'box28_services', cats: ['council_tax','light_and_heat','water_rates','premise_running_costs','telephone'] },
+  { key: 'box27_professional', cats: ['professional_fees','letting_agent_fees','legal_fees','accountancy_fees','bank_charges'] },
+  { key: 'box29_other', cats: ['travel_costs','rent_a_room_expense','other'] },
   { key: 'private_use', cats: ['private_use_adjustment'] },
 ]
 
