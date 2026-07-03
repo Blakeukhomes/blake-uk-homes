@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import type { DocumentRow } from '@/lib/types'
 import { DocumentUploader } from '@/components/document-uploader'
 import { DeleteDocumentButton } from '@/components/delete-document-button'
+import { TenantVisibilityToggle } from '@/components/tenant-visibility-toggle'
 
 export const dynamic = 'force-dynamic'
 
@@ -64,9 +65,7 @@ export default async function PropertyDocumentsPage({ params }: { params: { id: 
                         >
                           <Eye className="h-3.5 w-3.5" /> View
                         </Link>
-                        <Badge tone={d.visible_to_tenant ? 'info' : 'neutral'}>
-                          {d.visible_to_tenant ? 'Visible to tenant' : 'Private'}
-                        </Badge>
+                        <TenantVisibilityToggle documentId={d.id} initial={!!d.visible_to_tenant} />
                         <DeleteDocumentButton documentId={d.id} title={d.title} />
                       </div>
                     </div>
