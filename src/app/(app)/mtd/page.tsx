@@ -11,12 +11,14 @@ import {
   EXPENSE_LABEL,
   INCOME_LABEL,
   type MtdTransaction,
+  prevQuarterId,
   quarterById,
   quarterFor,
   recentQuarters,
   summariseQuarter,
 } from '@/lib/mtd'
 import { formatGBP } from '@/lib/rent'
+import { QuarterCheckBanner } from '@/components/quarter-check-banner'
 import type { Property } from '@/lib/types'
 import { format } from 'date-fns'
 
@@ -77,6 +79,22 @@ export default async function MtdPage({
       />
 
       <div className="p-6 space-y-6">
+        {/* Reminder banner at start of each new quarter */}
+        {(() => {
+          const now = new Date()
+          const currentQ = quarterFor(now)
+          const daysIn = Math.floor((now.getTime() - currentQ.start.getTime()) / 86400000)
+          const prevQ = quarterById(prevQuarterId(currentQ.id))
+          if (!prevQ) return null
+          return (
+            <QuarterCheckBanner
+              quarterId={currentQ.id}
+              daysSinceQuarterStart={daysIn}
+              prevQuarterLabel={prevQ.shortLabel}
+            />
+          )
+        })()}
+
         {/* Portfolio KPIs for the quarter */}
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <Stat label="Quarter" value={quarter.shortLabel} hint={`${format(quarter.start, 'd MMM yyyy')} to ${format(quarter.end, 'd MMM yyyy')}`} icon={<Receipt className="h-4 w-4" />} />

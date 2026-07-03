@@ -1,3 +1,5 @@
+import Link from 'next/link'
+import { Eye } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { PageHeader } from '@/components/app-shell'
 import { Card, CardBody, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -53,6 +55,15 @@ export default async function PropertyDocumentsPage({ params }: { params: { id: 
                         )}
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
+                        <Link
+                          href={`/api/documents/${d.id}/view`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-accent-700 ring-1 ring-inset ring-accent-500/30 hover:bg-accent-50"
+                          title="View document"
+                        >
+                          <Eye className="h-3.5 w-3.5" /> View
+                        </Link>
                         <Badge tone={d.visible_to_tenant ? 'info' : 'neutral'}>
                           {d.visible_to_tenant ? 'Visible to tenant' : 'Private'}
                         </Badge>

@@ -64,6 +64,54 @@ export async function GET(req: Request) {
     // non-fatal — notifications still run
   }
 
+  // ---- Auto-copy recurring MTD expenses forward each month ----
+  let recurringMtdSeeded = 0
+  try {
+    const now = new Date()
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+      .toISOString().slice(0, 10)
+    const monthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0))
+      .toISOString().slice(0, 10)
+
+    const { data: recurring = [] } = await sb
+      .from('mtd_transactions')
+      .select('*')
+      .eq('is_recurring', true)
+
+    for (const src of ((recurring ?? []) as any[])) {
+      const day = String(src.transaction_date).slice(-2)
+      const targetDate = `${monthStart.slice(0, 8)}${day}`
+      if (targetDate < monthStart || targetDate > monthEnd) continue
+
+      const { data: dupe } = await sb
+        .from('mtd_transactions')
+        .select('id')
+        .eq('property_id', src.property_id)
+        .eq('transaction_date', targetDate)
+        .eq('amount', src.amount)
+        .eq('description', src.description ?? '')
+        .maybeSingle()
+      if (dupe) continue
+
+      const { error: insErr } = await sb.from('mtd_transactions').insert({
+        property_id: src.property_id,
+        kind: src.kind,
+        income_category: src.income_category,
+        expense_category: src.expense_category,
+        transaction_date: targetDate,
+        amount: src.amount,
+        description: src.description,
+        supplier_or_payer: src.supplier_or_payer,
+        notes: src.notes,
+        is_recurring: false,
+        created_by: src.created_by,
+      })
+      if (!insErr) recurringMtdSeeded++
+    }
+  } catch {
+    // non-fatal
+  }
+
   const [
     { data: certs = [] },
     { data: payments = [] },
@@ -117,5 +165,5 @@ export async function GET(req: Request) {
     }
   }
 
-  return NextResponse.json({ events: events.length, emailsSent: sent, rentRowsSeeded })
+  return NextResponse.json({ events: events.length, emailsSent: sent, rentRowsSeeded, recurringMtdSeeded })
 }

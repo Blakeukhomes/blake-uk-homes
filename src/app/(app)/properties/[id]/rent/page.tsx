@@ -16,16 +16,27 @@ export default async function PropertyRentPage({ params }: { params: { id: strin
   const supabase = createClient()
   const { data: property } = await supabase.from('properties').select('*').eq('id', params.id).single()
   const { data: payments = [] } = await supabase
-    .from('rent_payments').select('*').eq('property_id', params.id).order('period_start', { ascending: false }).limit(6)
+    .from('rent_payments').select('*').eq('property_id', params.id).order('period_start', { ascending: false }).limit(12)
+  const { data: activeTenants = [] } = await supabase
+    .from('tenants').select('tenancy_start').eq('property_id', params.id).eq('is_active', true)
   if (!property) return null
   const p = property as Property
 
-  // Seed the next 6 months if missing
+  // Find the earliest active tenancy start for this property (used to skip pre-tenancy periods)
+  const tenancyStartStrs = ((activeTenants ?? []) as any[])
+    .map((t) => t.tenancy_start).filter(Boolean).sort()
+  const tenancyStart = tenancyStartStrs[0] as string | undefined
+  const tenancyStartMonth = tenancyStart
+    ? format(startOfMonth(parseISO(tenancyStart)), 'yyyy-MM-dd')
+    : undefined
+
+  // Seed the last 6 months if missing, but never before the tenancy started
   const existingPeriods = new Set((payments as RentPayment[]).map((x) => x.period_start))
   const needSeed: { period_start: string; due_date: string; amount_due: number }[] = []
   for (let i = 0; i < 6; i++) {
     const periodDate = startOfMonth(subMonths(new Date(), i))
     const period_start = format(periodDate, 'yyyy-MM-dd')
+    if (tenancyStartMonth && period_start < tenancyStartMonth) continue
     if (!existingPeriods.has(period_start)) {
       const dueDate = new Date(periodDate)
       dueDate.setDate(Math.min(p.rent_due_day || 1, 28))

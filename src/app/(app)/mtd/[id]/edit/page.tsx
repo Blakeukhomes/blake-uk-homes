@@ -34,6 +34,7 @@ export default async function EditMtdPage({ params }: { params: { id: string } }
       description: (formData.get('description') as string) || null,
       supplier_or_payer: (formData.get('supplier_or_payer') as string) || null,
       notes: (formData.get('notes') as string) || null,
+      is_recurring: formData.get('is_recurring') === 'on',
     }).eq('id', params.id)
     revalidatePath('/mtd')
     redirect('/mtd')
@@ -109,6 +110,18 @@ export default async function EditMtdPage({ params }: { params: { id: string } }
               <div className="sm:col-span-2">
                 <Label htmlFor="notes">Notes</Label>
                 <Textarea id="notes" name="notes" rows={2} defaultValue={t.notes ?? ''} />
+              </div>
+
+              <div className="sm:col-span-2 rounded-xl border border-accent-500/30 bg-accent-50 p-4">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" name="is_recurring" defaultChecked={t.is_recurring ?? false} className="mt-1 h-4 w-4 rounded border-ink-300" />
+                  <span className="text-sm">
+                    <span className="block font-semibold text-ink-900">This is a recurring monthly expense</span>
+                    <span className="mt-1 block text-xs text-ink-600">
+                      Tick to auto-log a fresh copy each month. Untick to stop future copies (past ones stay).
+                    </span>
+                  </span>
+                </label>
               </div>
 
               <div className="sm:col-span-2 flex justify-between gap-2">

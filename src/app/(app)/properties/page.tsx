@@ -29,15 +29,26 @@ export default async function PropertiesPage({ searchParams }: { searchParams: {
   const supabase = createClient()
   const { data: properties = [] } = await supabase.from('properties').select('*').order('nickname')
   const { data: payments = [] } = await supabase.from('rent_payments').select('*')
-  const { data: tenants = [] } = await supabase.from('tenants').select('id, property_id').eq('is_active', true)
+  const { data: tenants = [] } = await supabase.from('tenants').select('id, property_id, tenancy_start').eq('is_active', true)
 
   const props = (properties ?? []) as (Property & { listing_type?: string })[]
   const allPayments = (payments ?? []) as RentPayment[]
 
   const today = new Date()
+  // Map property_id -> earliest active tenancy_start (so we can ignore pre-tenancy seeded rows)
+  const tenancyStartByProp = new Map<string, string>()
+  for (const t of ((tenants ?? []) as any[])) {
+    if (!t.tenancy_start) continue
+    const cur = tenancyStartByProp.get(t.property_id)
+    if (!cur || t.tenancy_start < cur) tenancyStartByProp.set(t.property_id, t.tenancy_start)
+  }
+
   function nextPayment(propId: string): RentPayment | null {
+    const tenancyStart = tenancyStartByProp.get(propId)
     const future = allPayments
       .filter((p) => p.property_id === propId && p.status !== 'paid')
+      // Ignore rows before the tenancy actually started
+      .filter((p) => !tenancyStart || p.period_start >= tenancyStart)
       .sort((a, b) => a.due_date.localeCompare(b.due_date))
     return future[0] ?? null
   }

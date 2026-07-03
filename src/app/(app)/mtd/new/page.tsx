@@ -33,6 +33,7 @@ export default async function NewMtdTransactionPage() {
       created_by: user?.id ?? null,
       income_category:  kind === 'income'  ? (formData.get('income_category')  as string) : null,
       expense_category: kind === 'expense' ? (formData.get('expense_category') as string) : null,
+      is_recurring: formData.get('is_recurring') === 'on',
     }
 
     const { error } = await supabase.from('mtd_transactions').insert(payload)
@@ -102,6 +103,18 @@ export default async function NewMtdTransactionPage() {
               <div className="sm:col-span-2">
                 <Label htmlFor="notes">Notes</Label>
                 <Textarea id="notes" name="notes" rows={2} />
+              </div>
+
+              <div className="sm:col-span-2 rounded-xl border border-accent-500/30 bg-accent-50 p-4">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" name="is_recurring" className="mt-1 h-4 w-4 rounded border-ink-300" />
+                  <span className="text-sm">
+                    <span className="block font-semibold text-ink-900">This is a recurring monthly expense</span>
+                    <span className="mt-1 block text-xs text-ink-600">
+                      Tick to auto-log a fresh copy each month (e.g. mortgage, insurance, letting-agent fee, standing charges). You can edit or stop it anytime.
+                    </span>
+                  </span>
+                </label>
               </div>
 
               <div className="sm:col-span-2 flex justify-end gap-2">

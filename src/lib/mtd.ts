@@ -146,6 +146,7 @@ export interface MtdTransaction {
   supplier_or_payer: string | null
   notes: string | null
   created_by: string | null
+  is_recurring?: boolean
   created_at: string
 }
 
@@ -224,6 +225,15 @@ export function quarterById(id: string): MtdQuarter | null {
     4: new Date(ty + 1, 1, 1),
   }
   return quarterFor(probeMap[q])
+}
+
+export function prevQuarterId(id: string): string {
+  const m = id.match(/^(\d{4})Q([1-4])$/)
+  if (!m) return id
+  const ty = Number(m[1])
+  const q = Number(m[2])
+  if (q === 1) return `${ty - 1}Q4`
+  return `${ty}Q${q - 1}`
 }
 
 export function isInQuarter(dateStr: string, q: MtdQuarter): boolean {
