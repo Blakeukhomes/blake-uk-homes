@@ -11,7 +11,7 @@ import { format } from 'date-fns'
 
 export const dynamic = 'force-dynamic'
 
-export default async function NewMtdTransactionPage() {
+export default async function NewMtdTransactionPage({ searchParams }: { searchParams: { property_id?: string } }) {
   const supabase = createClient()
   const { data: properties = [] } = await supabase.from('properties').select('id, nickname').order('nickname')
   const props = (properties ?? []) as Pick<Property, 'id' | 'nickname'>[]
@@ -51,7 +51,7 @@ export default async function NewMtdTransactionPage() {
             <form action={logTransaction} className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label htmlFor="property_id">Property</Label>
-                <Select id="property_id" name="property_id" required>
+                <Select id="property_id" name="property_id" required defaultValue={searchParams.property_id ?? undefined}>
                   {props.map((p) => <option key={p.id} value={p.id}>{p.nickname}</option>)}
                 </Select>
               </div>

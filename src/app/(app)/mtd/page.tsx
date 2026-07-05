@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Receipt, Plus, Download } from 'lucide-react'
+import { Receipt, Plus, Download, RefreshCw } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { PageHeader } from '@/components/app-shell'
 import { Card, CardBody, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -47,7 +47,11 @@ export default async function MtdPage({
     .lte('transaction_date', endStr)
     .order('transaction_date', { ascending: false })
 
-  const allTxs = (txs ?? []) as MtdTransaction[]
+  const allTxsUnfiltered = (txs ?? []) as MtdTransaction[]
+  const filterPropertyId = searchParams.p && searchParams.p !== 'all' ? searchParams.p : null
+  const allTxs = filterPropertyId
+    ? allTxsUnfiltered.filter((t) => t.property_id === filterPropertyId)
+    : allTxsUnfiltered
 
   // Portfolio-wide totals
   let portfolioIncome = 0
@@ -188,6 +192,33 @@ export default async function MtdPage({
           })
         )}
 
+        {/* Property filter tabs */}
+        {props.length > 1 && (
+          <div className="flex flex-wrap gap-2 rounded-xl bg-white p-2 ring-1 ring-inset ring-ink-100">
+            <Link
+              href={`/mtd?q=${quarter.id}&p=all`}
+              className={
+                'rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ' +
+                (!filterPropertyId ? 'bg-ink-900 text-white' : 'text-ink-600 hover:bg-ink-100')
+              }
+            >
+              All properties
+            </Link>
+            {props.map((prop) => (
+              <Link
+                key={prop.id}
+                href={`/mtd?q=${quarter.id}&p=${prop.id}`}
+                className={
+                  'rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ' +
+                  (filterPropertyId === prop.id ? 'bg-ink-900 text-white' : 'text-ink-600 hover:bg-ink-100')
+                }
+              >
+                {prop.nickname}
+              </Link>
+            ))}
+          </div>
+        )}
+
         {/* Transactions list */}
         <Card>
           <CardHeader>
@@ -208,7 +239,9 @@ export default async function MtdPage({
                     <th className="px-2 py-2 font-semibold">Property</th>
                     <th className="px-2 py-2 font-semibold">Category</th>
                     <th className="px-2 py-2 font-semibold">Description</th>
-                    <th className="px-6 py-2 text-right font-semibold">Amount</th>
+                    <th className="px-2 py-2 text-right font-semibold">Amount</th>
+                    <th className="px-2 py-2 text-center font-semibold">Recurs</th>
+                    <th className="px-6 py-2 text-right font-semibold">&nbsp;</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -230,6 +263,11 @@ export default async function MtdPage({
                         </td>
                         <td className={`px-2 py-2 text-right font-medium ${t.kind === 'income' ? 'text-success-700' : 'text-ink-900'}`}>
                           {t.kind === 'expense' ? '-' : ''}{formatGBP(t.amount)}
+                        </td>
+                        <td className="px-2 py-2 text-center">
+                          {t.is_recurring
+                            ? <span title="Auto-copies each month" className="inline-flex items-center gap-1 rounded-full bg-accent-50 px-2 py-0.5 text-[10px] font-semibold text-accent-700 ring-1 ring-inset ring-accent-500/30"><RefreshCw className="h-2.5 w-2.5" /> monthly</span>
+                            : <span className="text-xs text-ink-300">-</span>}
                         </td>
                         <td className="px-6 py-2 text-right">
                           <Link href={`/mtd/${t.id}/edit`} className="text-xs font-semibold text-accent-700 underline">Edit</Link>
