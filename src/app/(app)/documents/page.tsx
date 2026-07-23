@@ -1,4 +1,5 @@
-import { FileText, Sparkles } from 'lucide-react'
+import Link from 'next/link'
+import { FileText, Sparkles, Eye } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { PageHeader } from '@/components/app-shell'
 import { Card, CardBody } from '@/components/ui/card'
@@ -7,6 +8,7 @@ import { TicketTabs } from '@/components/ticket-tabs'
 import { PropertyFilterSelect } from '@/components/property-filter-select'
 import { UploadDocumentLauncher } from '@/components/upload-document-launcher'
 import { DeleteDocumentButton } from '@/components/delete-document-button'
+import { TenantVisibilityToggle } from '@/components/tenant-visibility-toggle'
 import type { DocumentRow, Property } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
@@ -120,6 +122,15 @@ export default async function DocumentsPage({
                     </div>
                     <div className="flex items-center gap-1">
                       <Badge tone={badgeTone(d.kind)}>{categoryLabel(d.kind)}</Badge>
+                      <Link
+                        href={`/api/documents/${d.id}/view`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-md p-1 text-ink-400 hover:bg-accent-50 hover:text-accent-700"
+                        title="View document"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Link>
                       <DeleteDocumentButton documentId={d.id} title={d.title} />
                     </div>
                   </div>
@@ -129,6 +140,9 @@ export default async function DocumentsPage({
                     {d.file_size ? ` · ${(d.file_size / 1024 / 1024).toFixed(2)} MB` : ''}
                   </p>
                   {prop && <p className="mt-1 truncate text-xs text-ink-400">{prop.nickname}</p>}
+                  <div className="mt-2">
+                    <TenantVisibilityToggle documentId={d.id} initial={!!(d as any).visible_to_tenant} />
+                  </div>
                   {d.ai_summary && (
                     <div className="mt-3 flex items-start gap-1.5 rounded-lg bg-accent-50 px-2 py-1.5 text-[11px] text-accent-700">
                       <Sparkles className="h-3 w-3 shrink-0 mt-0.5" />
